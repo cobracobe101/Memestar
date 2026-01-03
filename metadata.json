@@ -1,0 +1,7 @@
+{
+  "name": "Meme Star Runner",
+  "description": "High-octane meme coin promotion platform. Blast your project to the moon for just $1. Featured on-site, social media, and our daily newsletter.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
