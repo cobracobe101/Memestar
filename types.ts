@@ -1,4 +1,6 @@
 
+export type AdPlacement = 'standard' | 'elite' | 'edge';
+
 export interface MemeCoin {
   id: string;
   name: string;
@@ -10,6 +12,7 @@ export interface MemeCoin {
   description: string;
   imageUrl?: string;
   timestamp: number;
+  placement: AdPlacement;
 }
 
 export enum PromotionStatus {

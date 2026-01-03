@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -7,14 +7,14 @@ export async function generateMoonCatchphrase(coinName: string, ticker: string):
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Generate a single, super hype, short "to the moon" catchphrase for a meme coin named ${coinName} ($${ticker}). Keep it under 10 words and use emojis.`,
+      contents: `Generate a short, professional, and clear 1-sentence description for a meme cryptocurrency named ${coinName} ($${ticker}). Do not use slang, "to the moon", or hype words. Focus on the project's identity or community. Keep it under 10 words.`,
       config: {
-        temperature: 0.9,
+        temperature: 0.5,
       }
     });
-    return response.text?.trim() || "Ready for blast off! 🚀";
+    return response.text?.trim() || "A community-focused meme coin project.";
   } catch (error) {
     console.error("Gemini Error:", error);
-    return "Next 1000x potential found! 💎";
+    return "Official meme coin listing.";
   }
 }

@@ -1,194 +1,273 @@
 
-import React, { useState, useEffect } from 'react';
-import { Rocket, Twitter, MessageCircle, Newspaper, Globe, Star, Zap, ChevronRight, CheckCircle2, Bitcoin, ArrowRight, ShieldCheck, Activity } from 'lucide-react';
-import { MemeCoin, PromotionStatus } from './types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Rocket, Globe, Zap, ArrowRight, ShieldCheck, Upload, Monitor, ExternalLink, Crown, Mail, Star } from 'lucide-react';
+import { MemeCoin, PromotionStatus, AdPlacement } from './types';
 import { generateMoonCatchphrase } from './services/geminiService';
+
+// --- Constants ---
+// Updated to ensure logo points to the correct synthwave asset
+const LOGO_URL = "https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png";
 
 // --- Components ---
 
-const Header = () => (
-  <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/5">
-    <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div className="flex items-center gap-3 group cursor-pointer">
-        <div className="bg-gradient-to-tr from-purple-600 to-pink-500 p-2 rounded-xl shadow-[0_0_15px_rgba(168,85,247,0.4)] group-hover:scale-110 transition-transform">
-          <Rocket className="w-5 h-5 text-white" />
+const EdgeBanner = ({ coin, onReserve }: { coin?: MemeCoin, onReserve: () => void }) => (
+  <div className="max-w-4xl mx-auto px-4 mb-8">
+    {coin ? (
+      <div className="relative h-24 w-full rounded-2xl border border-white/10 bg-zinc-900/40 backdrop-blur-xl flex items-center justify-center overflow-hidden transition-all duration-500 shadow-[0_0_30px_rgba(236,72,153,0.15)]">
+        <div className="flex items-center w-full px-6 gap-6">
+          <div className="h-14 w-14 rounded-xl bg-black border border-white/10 overflow-hidden shrink-0 shadow-lg flex items-center justify-center relative">
+             {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold text-white bg-zinc-800">{coin.ticker[0]}</div>}
+          </div>
+          <div className="flex-grow min-w-0 text-left">
+            <div className="flex items-center gap-3 mb-1">
+               <span className="text-[8px] font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-0.5 rounded tracking-widest uppercase shadow-sm">Featured Runner</span>
+               <h4 className="font-bold text-lg uppercase truncate text-white">{coin.name}</h4>
+               <span className="text-cyan-400 text-sm font-bold font-mono">${coin.ticker}</span>
+            </div>
+            <p className="text-zinc-400 text-xs font-medium truncate">{coin.description}</p>
+          </div>
+          <a href={coin.website} target="_blank" className="bg-white hover:bg-zinc-200 text-black px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap font-bold text-xs uppercase shadow-lg transform hover:scale-105 active:scale-95">
+            Visit Site
+            <ExternalLink className="w-4 h-4" />
+          </a>
         </div>
-        <span className="pixel-font text-xs font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-          STAR RUNNER
-        </span>
       </div>
-      <nav className="hidden md:flex gap-10 items-center">
-        <a href="#how-it-works" className="text-[10px] font-black text-zinc-500 hover:text-white transition-all uppercase tracking-[0.4em] hover:tracking-[0.5em]">Protocol</a>
-        <a href="#featured" className="text-[10px] font-black text-zinc-500 hover:text-white transition-all uppercase tracking-[0.4em] hover:tracking-[0.5em]">Runners</a>
-        <button className="bg-white/5 hover:bg-white/10 text-white border border-white/10 px-6 py-2 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] transition-all hover:border-purple-500/50">
-          Subscribe Alpha
-        </button>
+    ) : null}
+  </div>
+);
+
+const SidebarAd = ({ 
+  side, 
+  coin, 
+  onReserve 
+}: { 
+  side: 'left' | 'right', 
+  coin?: MemeCoin, 
+  onReserve: () => void 
+}) => (
+  <aside className={`hidden 2xl:flex flex-col fixed top-32 ${side === 'left' ? 'left-8' : 'right-8'} w-48 z-40 gap-6`}>
+    {coin ? (
+      <div className="bg-zinc-950/80 border border-white/5 rounded-2xl p-5 shadow-[0_0_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-500 hover:border-pink-500/30">
+        <div className="flex items-center justify-between mb-5">
+          <span className="text-[9px] font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 uppercase tracking-[0.2em]">Partner Slot</span>
+        </div>
+
+        <div className="space-y-5">
+          <div className="aspect-square rounded-2xl bg-black border border-white/5 overflow-hidden shadow-inner group transition-all flex items-center justify-center">
+            {coin.imageUrl ? (
+              <img src={coin.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center font-bold text-4xl text-zinc-800">{coin.ticker[0]}</div>
+            )}
+          </div>
+          <div className="text-left">
+            <h4 className="font-bold text-sm uppercase truncate text-white mb-0.5">{coin.name}</h4>
+            <p className="text-cyan-400 text-xs font-bold font-mono">${coin.ticker}</p>
+          </div>
+          <p className="text-zinc-400 text-[10px] line-clamp-3 leading-relaxed font-medium">{coin.description}</p>
+          <a 
+            href={coin.website} 
+            target="_blank" 
+            className="block w-full py-2.5 bg-gradient-to-r from-zinc-900 to-black border border-white/5 text-zinc-300 text-[10px] font-bold text-center rounded-xl hover:text-white transition-all uppercase hover:border-pink-500/50"
+          >
+            Go to Website
+          </a>
+        </div>
+      </div>
+    ) : null}
+  </aside>
+);
+
+const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
+  const [imageError, setImageError] = useState(false);
+  const containerClasses = size === 'sm' ? 'h-8' : size === 'md' ? 'h-14' : 'h-24';
+  const textClasses = size === 'sm' ? 'text-lg' : size === 'md' ? 'text-2xl' : 'text-5xl';
+  const subtextClasses = size === 'sm' ? 'text-[8px]' : size === 'md' ? 'text-[10px]' : 'text-lg';
+
+  return (
+    <div className="flex items-center gap-4 group cursor-pointer">
+      <div className={`relative ${containerClasses} flex items-center`}>
+        {!imageError ? (
+          <img 
+            src={LOGO_URL} 
+            alt="Meme-Star Runner Logo" 
+            className="h-full object-contain drop-shadow-[0_0_15px_rgba(236,72,153,0.5)] group-hover:scale-110 transition-transform"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="flex flex-col items-start">
+            <span className={`script-font ${textClasses} leading-none text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-pink-500 to-yellow-400 drop-shadow-[0_0_10px_rgba(236,72,153,0.6)]`}>
+              MEME-STAR
+            </span>
+            <span className={`font-black ${subtextClasses} leading-none text-cyan-400 tracking-[0.3em] uppercase italic drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]`}>
+              RUNNER
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const Header = () => (
+  <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+    <div className="max-w-7xl mx-auto px-8 py-3 flex justify-between items-center">
+      <Logo size="md" />
+      <nav className="hidden md:flex gap-12 items-center">
+        <a href="#promotions" className="text-[10px] font-bold text-zinc-400 hover:text-cyan-400 transition-all uppercase tracking-widest">Feed</a>
+        <a href="mailto:support@memestarrunner.com" className="text-[10px] font-bold text-zinc-400 hover:text-pink-400 transition-all uppercase tracking-widest">Support</a>
       </nav>
     </div>
   </header>
 );
 
-const MemeStarLogo = () => {
-  const [imgError, setImgError] = useState(false);
-  const logoUrl = "https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png";
-
-  return (
-    <div className="relative flex flex-col items-center justify-center py-16 logo-bounce">
-      {!imgError ? (
-        <img 
-          src={logoUrl} 
-          alt="Meme Star Runner Logo" 
-          className="w-full max-w-2xl drop-shadow-[0_0_80px_rgba(168,85,247,0.6)] relative z-20"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div className="relative flex flex-col items-center select-none scale-75 md:scale-100">
-          <div className="absolute -top-20 w-80 h-80 rounded-full retro-sun blur-[2px] opacity-90"></div>
-          <div className="relative z-10 text-center">
-            <h2 className="marker-font text-8xl md:text-[10rem] italic leading-none mb-[-2.5rem] md:mb-[-4rem] text-transparent bg-clip-text bg-gradient-to-b from-pink-300 via-pink-500 to-purple-800 drop-shadow-[0_0_30px_rgba(236,72,153,1)] rotate-[-4deg]">
-              Meme-Star
-            </h2>
-            <h3 className="italic font-black text-7xl md:text-[9rem] tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-b from-cyan-200 via-blue-400 to-blue-700 drop-shadow-[0_0_40px_rgba(6,182,212,1)] skew-x-[-15deg]">
-              RUNNER
-            </h3>
+const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement) => void }) => (
+  <section className="relative pt-12 pb-20 overflow-hidden flex flex-col items-center justify-center">
+    <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
+      <div className="mb-14 flex justify-center">
+        <div className="relative group">
+          <div className="absolute -inset-10 bg-gradient-to-r from-purple-600/30 to-pink-600/30 rounded-full blur-[120px] opacity-40 group-hover:opacity-70 transition duration-1000"></div>
+          <div className="relative transform group-hover:scale-105 transition-transform duration-700">
+             {/* Large Hero Logo */}
+             <div className="h-48 md:h-64 flex items-center justify-center">
+                <img src={LOGO_URL} alt="Meme-Star Runner Hero" className="h-full object-contain drop-shadow-[0_0_60px_rgba(236,72,153,0.4)]" />
+             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-};
-
-const Hero = ({ onStartPromotion }: { onStartPromotion: () => void }) => (
-  <section className="relative pt-10 pb-24 overflow-hidden min-h-[90vh] flex flex-col items-center justify-center">
-    <div className="absolute top-0 left-0 w-full h-full bg-grid opacity-[0.07] pointer-events-none"></div>
-    <div className="bg-grid-floor"></div>
-    <div className="scanline"></div>
-    
-    <div className="max-w-6xl mx-auto px-4 text-center relative z-10">
-      <MemeStarLogo />
-
-      <div className="inline-flex items-center gap-4 bg-black/80 border border-purple-500/40 px-8 py-3 rounded-full mb-12 backdrop-blur-2xl shadow-[0_0_30px_rgba(168,85,247,0.2)]">
-        <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
-        <span className="text-[10px] md:text-xs font-black text-purple-100 uppercase tracking-[0.4em]">Propel Your Ticker for $1.00 BTC</span>
       </div>
 
-      <p className="text-xl md:text-3xl text-zinc-400 mb-14 max-w-3xl mx-auto leading-relaxed font-light italic">
-        The ultimate <span className="text-white font-black border-b-2 border-pink-500 px-2">Launchpad</span> for coins destined to break the charts. No influencers. No fees. Just pure speed.
+      <div className="inline-flex items-center gap-3 bg-zinc-900/40 backdrop-blur-md border border-white/10 px-6 py-2.5 rounded-full mb-10 shadow-xl">
+        <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400 animate-pulse" />
+        <span className="text-[10px] font-bold text-zinc-200 uppercase tracking-[0.2em]">Blast your project to the moon for <span className="text-cyan-400">$1.00 BTC</span></span>
+      </div>
+
+      <h1 className="text-4xl md:text-7xl font-black uppercase tracking-tighter mb-8 leading-[1]">
+        <span className="bg-gradient-to-r from-white via-pink-100 to-cyan-100 bg-clip-text text-transparent">THE #1 DESTINATION</span> <br /> 
+        <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent">FOR MEME PROMOTIONS</span>
+      </h1>
+
+      <p className="text-zinc-400 text-lg md:text-xl mb-16 max-w-2xl mx-auto leading-relaxed font-medium italic">
+        The ultimate dashboard for high-octane community coins.
       </p>
       
       <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
         <button 
-          onClick={onStartPromotion}
-          className="bg-white text-black px-14 py-6 rounded-2xl font-black text-2xl flex items-center justify-center gap-3 hover:bg-zinc-200 transition-all transform hover:scale-105 shadow-[0_30px_100px_rgba(255,255,255,0.2)] group"
+          onClick={() => onStartPromotion('standard')}
+          className="relative group bg-white text-black px-14 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-2xl w-full sm:w-auto transform active:scale-95 overflow-hidden"
         >
-          INITIATE BURN <Rocket className="w-7 h-7 group-hover:rotate-12 group-hover:-translate-y-1 transition-all" />
+          PROMOTE YOUR MEME ($1) <Rocket className="w-5 h-5" />
         </button>
-        <a href="#featured" className="text-white bg-zinc-900/60 border border-white/10 px-12 py-6 rounded-2xl font-black text-xl hover:bg-white/10 transition-all backdrop-blur-xl">
-          View Live Feed
-        </a>
+        <button 
+          onClick={() => onStartPromotion('edge')}
+          className="bg-black/40 backdrop-blur-md text-white border border-white/10 px-14 py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-zinc-900 transition-all w-full sm:w-auto transform active:scale-95 shadow-xl hover:border-pink-500/50"
+        >
+          RESERVE SIDEBAR SPACE <Monitor className="w-5 h-5" />
+        </button>
       </div>
     </div>
   </section>
 );
 
-const Features = () => (
-  <section id="how-it-works" className="py-40 bg-black relative border-y border-white/5">
-    <div className="max-w-6xl mx-auto px-4">
-      <div className="grid md:grid-cols-3 gap-16">
-        {[
-          {
-            icon: <Globe className="w-10 h-10 text-cyan-400" />,
-            title: "Network Nodes",
-            desc: "Featured across our high-traffic terminal and satellite pages. 100% uptime for your mission."
-          },
-          {
-            icon: <Twitter className="w-10 h-10 text-sky-400" />,
-            title: "Social Overdrive",
-            desc: "Instant syndication to our X, Telegram, and Discord hubs via the Star Runner API."
-          },
-          {
-            icon: <Newspaper className="w-10 h-10 text-pink-400" />,
-            title: "Degen Digest",
-            desc: "Permanent inclusion in our 'Alpha Scan' newsletter sent to serious volume hunters."
-          }
-        ].map((feat, i) => (
-          <div key={i} className="group relative">
-            <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-[3rem] blur opacity-0 group-hover:opacity-10 transition duration-1000"></div>
-            <div className="relative bg-zinc-950/50 border border-white/5 p-16 rounded-[2.5rem] h-full flex flex-col items-center text-center hover:border-white/10 transition-colors">
-              <div className="mb-10 p-6 bg-black rounded-3xl shadow-inner border border-white/5 group-hover:scale-110 transition-transform">{feat.icon}</div>
-              <h3 className="text-2xl font-black mb-5 uppercase tracking-tighter italic">{feat.title}</h3>
-              <p className="text-zinc-500 leading-relaxed font-medium text-lg italic">"{feat.desc}"</p>
+const TopPromotions = ({ coins }: { coins: MemeCoin[] }) => {
+  const topCoins = coins.filter(c => c.placement === 'elite');
+
+  return (
+    <section id="top-promos" className="py-20 relative overflow-hidden bg-black/40 border-y border-white/5 backdrop-blur-sm">
+      <div className="max-w-4xl mx-auto px-4 relative z-10 text-left">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-14">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <Crown className="w-8 h-8 text-pink-500" />
+              <h2 className="text-4xl font-extrabold tracking-tight uppercase bg-gradient-to-r from-white to-pink-500 bg-clip-text text-transparent">Top 7-Day Board</h2>
             </div>
+            <p className="text-zinc-400 font-medium text-lg">Elite visibility for high-performing projects.</p>
           </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-const PromotionBoard = ({ coins }: { coins: MemeCoin[] }) => (
-  <section id="featured" className="py-40 relative overflow-hidden bg-[#020202]">
-    <div className="max-w-6xl mx-auto px-4 relative z-10">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-24">
-        <div>
-          <h2 className="text-6xl font-black mb-4 italic tracking-tighter uppercase leading-none text-transparent bg-clip-text bg-gradient-to-r from-white to-zinc-600">The Runner Board</h2>
-          <p className="text-zinc-500 font-bold text-xl italic tracking-tight">Active moon missions currently broadcasting through the Star Runner terminal.</p>
+          <div className="flex items-center gap-4 bg-zinc-900/60 p-5 rounded-2xl border border-white/5 max-w-sm shadow-xl">
+            <Mail className="w-6 h-6 text-cyan-400 shrink-0" />
+            <p className="text-zinc-300 text-xs font-semibold leading-relaxed">
+              Email us for weekly sponsorship slots: <a href="mailto:support@memestarrunner.com" className="text-pink-400 hover:text-pink-300 hover:underline underline-offset-4 font-bold transition-all">support@memestarrunner.com</a>.
+            </p>
+          </div>
         </div>
-        <div className="bg-zinc-900/40 px-8 py-4 rounded-[1.5rem] border border-white/10 backdrop-blur-md flex items-center gap-6">
-          <span className="text-green-500 text-[10px] font-black animate-pulse flex items-center gap-4 tracking-[0.3em]">
-            <span className="w-4 h-4 bg-green-500 rounded-full shadow-[0_0_20px_rgba(34,197,94,0.8)]"></span> NETWORK: ONLINE
-          </span>
-          <div className="h-4 w-px bg-white/10"></div>
-          <Activity className="w-5 h-5 text-zinc-500" />
+        
+        <div className="grid grid-cols-1 gap-10">
+          {topCoins.length === 0 ? (
+            <div className="py-24 border border-dashed border-zinc-900 rounded-[2rem] flex items-center justify-center bg-zinc-950/20">
+               <p className="text-zinc-700 text-base font-bold uppercase tracking-widest italic">Board expansion in progress...</p>
+            </div>
+          ) : (
+            topCoins.map(coin => (
+              <div key={coin.id} className="relative group p-12 rounded-[2.5rem] border border-white/10 bg-zinc-950/50 backdrop-blur-xl transition-all duration-300 hover:border-pink-500/50 shadow-2xl overflow-hidden">
+                <div className="absolute top-0 right-0 p-8">
+                  <span className="text-[10px] font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Premium Slot</span>
+                </div>
+                <div className="flex flex-col md:flex-row gap-12 items-start md:items-center">
+                  <div className="w-32 h-32 rounded-[1.5rem] bg-black border border-white/5 overflow-hidden shrink-0 shadow-2xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500">
+                    {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center font-bold text-white text-4xl bg-zinc-900">{coin.ticker[0]}</div>}
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-6 mb-5">
+                      <h4 className="font-bold text-3xl uppercase text-white tracking-tighter">{coin.name}</h4>
+                      <span className="text-cyan-400 text-xl font-black font-mono tracking-tight">${coin.ticker}</span>
+                    </div>
+                    <p className="text-zinc-400 text-lg leading-relaxed mb-10 max-w-2xl font-medium">{coin.description}</p>
+                    <a href={coin.website} target="_blank" className="inline-flex items-center gap-3 bg-white text-black px-8 py-3.5 rounded-2xl font-bold text-sm uppercase hover:bg-zinc-200 transition-all shadow-lg active:scale-95 transform hover:translate-x-1">
+                      Website <ExternalLink className="w-5 h-5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ListingsFeed = ({ coins }: { coins: MemeCoin[] }) => (
+  <section id="promotions" className="py-24 relative overflow-hidden bg-transparent">
+    <div className="max-w-4xl mx-auto px-4 relative z-10 text-left">
+      <div className="flex flex-col items-start gap-4 mb-14">
+        <h2 className="text-3xl font-extrabold tracking-tight uppercase bg-gradient-to-r from-white to-cyan-400 bg-clip-text text-transparent">Live Listing Stream</h2>
+        <div className="flex items-center gap-4">
+          <div className="bg-zinc-900/50 px-5 py-2 rounded-full border border-white/5 flex items-center gap-3 backdrop-blur-md">
+            <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.6)]"></span>
+            <span className="text-zinc-400 text-[9px] font-bold uppercase tracking-widest">Connected to Board</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-12">
-        {coins.length === 0 ? (
-          <div className="col-span-full py-48 text-center bg-zinc-950/20 border-2 border-dashed border-zinc-900 rounded-[4rem]">
-            <Rocket className="w-20 h-20 text-zinc-800 mx-auto mb-8 opacity-10" />
-            <p className="text-zinc-700 font-black text-2xl uppercase italic tracking-[0.5em]">No Missions In Progress</p>
+      <div className="flex flex-col gap-6">
+        {coins.filter(c => c.placement === 'standard').length === 0 ? (
+          <div className="py-32 text-center border border-dashed border-zinc-900 rounded-[2.5rem] bg-zinc-950/10">
+            <p className="text-zinc-700 font-bold text-lg uppercase tracking-widest italic">Board is refreshing...</p>
           </div>
         ) : (
-          coins.map((coin) => (
-            <div key={coin.id} className="group relative bg-gradient-to-b from-zinc-900 to-black border border-white/10 rounded-[3rem] overflow-hidden hover:translate-y-[-12px] transition-all duration-700 hover:shadow-[0_60px_120px_rgba(0,0,0,0.8)]">
-              <div className="absolute top-8 right-8 z-10">
-                <div className="bg-purple-600/10 text-purple-400 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-purple-500/20 backdrop-blur-md">
-                  HOT ASSET
+          coins.filter(c => c.placement === 'standard').map((coin) => (
+            <div key={coin.id} className="group relative bg-zinc-950/40 backdrop-blur-md border border-white/5 rounded-[1.5rem] overflow-hidden hover:bg-zinc-900/30 transition-all duration-300 shadow-lg hover:shadow-2xl hover:border-cyan-500/30">
+              <div className="p-8 flex flex-col sm:flex-row gap-8 items-start sm:items-center">
+                <div className="w-16 h-16 rounded-xl bg-black flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5 shadow-inner group-hover:border-white/20 transition-colors">
+                  {coin.imageUrl ? (
+                    <img src={coin.imageUrl} alt={coin.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                  ) : (
+                    <span className="text-2xl font-bold text-zinc-700">{coin.ticker[0]}</span>
+                  )}
                 </div>
-              </div>
-              <div className="p-12">
-                <div className="flex items-center gap-8 mb-10">
-                  <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-purple-600 via-pink-500 to-blue-600 flex items-center justify-center text-4xl font-black text-white shadow-[0_20px_50px_rgba(168,85,247,0.4)] transform group-hover:rotate-6 transition-transform">
-                    {coin.ticker[0]}
+                <div className="flex-grow min-w-0">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-bold text-xl leading-none uppercase truncate text-white">{coin.name} <span className="text-cyan-400 ml-4 text-sm font-bold font-mono">${coin.ticker}</span></h4>
+                    <span className="text-[10px] font-mono text-zinc-600 shrink-0 font-bold uppercase tracking-tighter">{new Date(coin.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                   </div>
-                  <div>
-                    <h4 className="font-black text-3xl leading-none mb-3 italic uppercase">{coin.name}</h4>
-                    <span className="text-pink-500 text-lg font-mono font-black tracking-tighter">${coin.ticker}</span>
-                  </div>
+                  <p className="text-zinc-400 text-sm font-medium line-clamp-1">
+                    {coin.description}
+                  </p>
                 </div>
-                <p className="text-zinc-400 text-lg line-clamp-4 mb-12 h-28 leading-relaxed italic font-medium">
-                  "{coin.description}"
-                </p>
-                <div className="grid grid-cols-3 gap-4">
-                  <a href={coin.website} target="_blank" className="bg-zinc-800/50 hover:bg-white hover:text-black p-5 rounded-2xl flex items-center justify-center transition-all group/btn">
-                    <Globe className="w-7 h-7" />
+                <div className="flex gap-4 shrink-0 w-full sm:w-auto">
+                  <a href={coin.website} target="_blank" className="flex-1 sm:flex-none bg-zinc-900/80 p-3 rounded-xl text-zinc-400 hover:text-cyan-400 transition-all border border-white/5 hover:border-cyan-500/50 shadow-sm flex items-center justify-center">
+                    <Globe className="w-5 h-5" />
                   </a>
-                  {coin.twitter && (
-                    <a href={coin.twitter} target="_blank" className="bg-zinc-800/50 hover:bg-sky-500 p-5 rounded-2xl flex items-center justify-center transition-all">
-                      <Twitter className="w-7 h-7" />
-                    </a>
-                  )}
-                  {coin.telegram && (
-                    <a href={coin.telegram} target="_blank" className="bg-zinc-800/50 hover:bg-blue-500 p-5 rounded-2xl flex items-center justify-center transition-all">
-                      <MessageCircle className="w-7 h-7" />
-                    </a>
-                  )}
                 </div>
-              </div>
-              <div className="p-8 bg-black/80 border-t border-white/5 text-[11px] font-mono text-zinc-600 flex items-center justify-between">
-                <span className="truncate pr-10 uppercase font-black tracking-tighter">CA: {coin.contractAddress}</span>
-                <button className="text-purple-400 font-black hover:text-white transition-colors tracking-widest uppercase text-[10px]">VERIFY</button>
               </div>
             </div>
           ))
@@ -198,139 +277,156 @@ const PromotionBoard = ({ coins }: { coins: MemeCoin[] }) => (
   </section>
 );
 
-const PromotionModal = ({ isOpen, onClose, onFinish }: { isOpen: boolean, onClose: () => void, onFinish: (coin: MemeCoin) => void }) => {
+const PromotionModal = ({ 
+  isOpen, 
+  onClose, 
+  onFinish, 
+  initialPlacement = 'standard' 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onFinish: (coin: MemeCoin) => void, 
+  initialPlacement?: AdPlacement 
+}) => {
   const [step, setStep] = useState<PromotionStatus>(PromotionStatus.IDLE);
+  const [placement, setPlacement] = useState<AdPlacement>(initialPlacement);
   const [hasInitiatedPayment, setHasInitiatedPayment] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
-    name: '', ticker: '', contract: '', website: '', twitter: '', telegram: '', description: ''
+    name: '', ticker: '', website: '', description: '', imageUrl: ''
   });
 
-  // Re-initialize Blockonomics if needed when modal opens
-  useEffect(() => {
-    if (isOpen && (window as any).Blockonomics) {
-      // Standard Blockonomics pay_button.js script scans the DOM
-      // No explicit init usually needed if the element exists on load, 
-      // but some versions allow re-scanning.
+  useEffect(() => { 
+    if (isOpen) {
+      setPlacement(initialPlacement);
+      setStep(PromotionStatus.IDLE);
+      setHasInitiatedPayment(false);
     }
-  }, [isOpen]);
+  }, [initialPlacement, isOpen]);
 
   if (!isOpen) return null;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleContinueAfterPayment = () => setStep(PromotionStatus.SUBMITTING);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStep(PromotionStatus.SUBMITTING);
-    const catchphrase = await generateMoonCatchphrase(formData.name, formData.ticker);
+    const generatedDescription = await generateMoonCatchphrase(formData.name, formData.ticker);
     
     const newCoin: MemeCoin = {
       id: Math.random().toString(36).substr(2, 9),
       name: formData.name,
       ticker: formData.ticker,
-      contractAddress: formData.contract,
+      contractAddress: '',
       website: formData.website,
-      twitter: formData.twitter,
-      telegram: formData.telegram,
-      description: catchphrase + " " + formData.description,
-      timestamp: Date.now()
+      imageUrl: formData.imageUrl,
+      description: formData.description || generatedDescription,
+      timestamp: Date.now(),
+      placement: placement
     };
 
     setTimeout(() => {
       onFinish(newCoin);
       setStep(PromotionStatus.SUCCESS);
-    }, 2000);
+    }, 1800);
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/98 backdrop-blur-[40px]" onClick={onClose}></div>
-      <div className="relative bg-zinc-950 w-full max-w-2xl border border-white/10 rounded-[3.5rem] overflow-hidden shadow-[0_40px_150px_rgba(0,0,0,1)]">
+      <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl" onClick={onClose}></div>
+      <div className="relative bg-zinc-950 w-full max-w-md border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
         
         {step === PromotionStatus.IDLE && (
-          <div className="p-16">
-            <h2 className="text-5xl font-black mb-4 italic tracking-tighter uppercase leading-none">Access Mission</h2>
-            <p className="text-zinc-500 mb-12 text-xl font-medium italic">Broadcast your asset for $1.00 USD (Paid in BTC).</p>
+          <div className="p-12 text-center">
+            <h2 className="text-3xl font-extrabold text-white uppercase tracking-tight mb-8 bg-gradient-to-r from-white to-pink-200 bg-clip-text">Secure Board Placement</h2>
+            <div className="flex bg-black p-2 rounded-2xl mb-12 border border-white/5 gap-2">
+              <button onClick={() => setPlacement('standard')} className={`flex-1 py-3 text-[10px] font-bold uppercase rounded-xl transition-all ${placement === 'standard' ? 'bg-white text-black shadow-lg' : 'text-zinc-600'}`}>Standard listing ($1)</button>
+              <button onClick={() => setPlacement('edge')} className={`flex-1 py-3 text-[10px] font-bold uppercase rounded-xl transition-all ${placement === 'edge' ? 'bg-zinc-800 text-white shadow-lg' : 'text-zinc-600'}`}>Sidebar Space ($15)</button>
+            </div>
             
-            <div className="bg-black p-20 rounded-[3rem] text-center mb-12 border border-white/5 relative group flex flex-col items-center overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_rgba(247,147,26,0.15)_0%,_transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-              
-              <div className="mb-12 relative z-10" onClick={() => setHasInitiatedPayment(true)}>
-                <a href="" className="blockoPayBtn" data-toggle="modal" data-uid="32a3fea8442c4112">
-                  <img width="240" src="https://www.blockonomics.co/img/pay_with_bitcoin_medium.png" className="hover:scale-110 transition-transform active:scale-95 duration-500 drop-shadow-[0_0_20px_rgba(247,147,26,0.3)]" />
-                </a>
+            <div className="bg-zinc-900/30 p-12 rounded-3xl text-center mb-12 border border-white/5 flex flex-col items-center">
+              <div className="mb-12" onClick={() => setHasInitiatedPayment(true)}>
+                <img width="220" src="https://www.blockonomics.co/img/pay_with_bitcoin_medium.png" className="hover:scale-105 cursor-pointer transition-transform shadow-2xl rounded-lg" alt="Payment" />
               </div>
 
               {hasInitiatedPayment && (
                 <button 
                   onClick={handleContinueAfterPayment}
-                  className="w-full py-6 bg-purple-600/10 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-600/30 rounded-2xl font-black text-2xl transition-all flex items-center justify-center gap-4 group/btn relative z-10 shadow-2xl"
+                  className="w-full py-5 bg-gradient-to-r from-cyan-400 to-cyan-600 text-white rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] shadow-xl transform active:scale-95"
                 >
-                  TRANSACTION BROADCASTED <ArrowRight className="group-hover/btn:translate-x-2 transition-transform" />
+                  ENTER PROJECT DATA <ArrowRight className="w-5 h-5" />
                 </button>
               )}
-              
-              <p className="mt-8 text-[11px] text-zinc-700 font-mono tracking-[0.5em] uppercase font-bold italic z-10">Secured via Blockonomics Protocol</p>
             </div>
             
-            <button onClick={onClose} className="w-full text-zinc-600 hover:text-white text-[10px] font-black uppercase tracking-[0.5em] transition-colors italic">Abort Launch Cycle</button>
+            <button onClick={onClose} className="w-full text-zinc-600 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-colors">Abort request</button>
           </div>
         )}
 
         {step === PromotionStatus.SUBMITTING && (
-          <form onSubmit={handleSubmit} className="p-16 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-12">
-              <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Payload Configuration</h2>
-              <div className="bg-green-500/10 text-green-500 px-6 py-2 rounded-full text-[11px] font-black tracking-[0.2em] border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.2)]">
-                FUEL DETECTED
+          <form onSubmit={handleSubmit} className="p-10 max-h-[85vh] overflow-y-auto">
+            <h2 className="text-2xl font-extrabold uppercase tracking-tight text-white mb-8">Board Information</h2>
+            <div className="flex flex-col items-center mb-10">
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-24 rounded-2xl bg-black border border-white/10 flex items-center justify-center cursor-pointer overflow-hidden group transition-all shadow-xl hover:border-cyan-500/50"
+              >
+                {formData.imageUrl ? (
+                  <img src={formData.imageUrl} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center text-zinc-600 group-hover:text-cyan-400 transition-colors">
+                    <Upload className="w-7 h-7 mb-2" />
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-center px-2">Logo</span>
+                  </div>
+                )}
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </div>
+
+            <div className="space-y-6 mb-10">
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2 tracking-widest">Project Name</label>
+                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black border border-white/5 rounded-xl p-4 focus:border-cyan-500/50 outline-none text-white text-sm font-bold transition-all" placeholder="Enter name" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2 tracking-widest">Ticker</label>
+                <input required value={formData.ticker} onChange={e => setFormData({...formData, ticker: e.target.value})} className="w-full bg-black border border-white/5 rounded-xl p-4 focus:border-pink-500/50 outline-none text-cyan-400 text-sm font-black font-mono transition-all uppercase" placeholder="e.g. STAR" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2 tracking-widest">Website</label>
+                <input required type="url" value={formData.website} onChange={e => setFormData({...formData, website: e.target.value})} className="w-full bg-black border border-white/5 rounded-xl p-4 focus:border-white/40 outline-none text-white text-sm transition-all" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase mb-2 tracking-widest">Brief Info</label>
+                <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-black border border-white/5 rounded-xl p-4 focus:border-white/40 outline-none h-24 resize-none text-zinc-300 text-sm font-medium transition-all" placeholder="Quick project summary..."></textarea>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-10 mb-12">
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[11px] font-black text-zinc-600 uppercase mb-4 tracking-[0.3em] italic">Ticker Name</label>
-                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-6 focus:border-purple-600 outline-none transition-all text-white font-black text-xl italic" placeholder="GALAXY" />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[11px] font-black text-zinc-600 uppercase mb-4 tracking-[0.3em] italic">$Ticker</label>
-                <input required value={formData.ticker} onChange={e => setFormData({...formData, ticker: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-6 focus:border-purple-600 outline-none transition-all text-white font-black text-xl italic" placeholder="GALX" />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[11px] font-black text-zinc-600 uppercase mb-4 tracking-[0.3em] italic">Network ID (Contract)</label>
-                <input required value={formData.contract} onChange={e => setFormData({...formData, contract: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-6 focus:border-cyan-500 outline-none transition-all font-mono text-base text-cyan-400" placeholder="0x..." />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[11px] font-black text-zinc-600 uppercase mb-4 tracking-[0.3em] italic">Orbital Portal (Web)</label>
-                <input required value={formData.website} onChange={e => setFormData({...formData, website: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-6 focus:border-purple-600 outline-none transition-all text-white font-bold" placeholder="https://..." />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[11px] font-black text-zinc-600 uppercase mb-4 tracking-[0.3em] italic">Social Uplink (X)</label>
-                <input value={formData.twitter} onChange={e => setFormData({...formData, twitter: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-6 focus:border-purple-600 outline-none transition-all text-white font-bold" placeholder="@ticker" />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[11px] font-black text-zinc-600 uppercase mb-4 tracking-[0.3em] italic">The Degen Thesis</label>
-                <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-6 focus:border-pink-500 outline-none transition-all h-40 resize-none text-white italic text-lg leading-relaxed" placeholder="Why are you going to the moon? Give us the alpha..."></textarea>
-              </div>
-            </div>
-
-            <button type="submit" className="w-full py-8 bg-gradient-to-r from-purple-700 via-purple-600 to-pink-600 hover:from-purple-600 hover:to-pink-500 text-white font-black text-3xl rounded-3xl transition-all shadow-[0_20px_80px_rgba(168,85,247,0.5)] transform hover:scale-[1.02] active:scale-95 italic">
-              ENGAGE HYPERDRIVE ⚡
+            <button type="submit" className="w-full py-4 bg-white text-black font-extrabold text-lg rounded-xl transition-all shadow-2xl uppercase active:scale-95 transform hover:scale-[1.01]">
+              CONFIRM LISTING
             </button>
           </form>
         )}
 
         {step === PromotionStatus.SUCCESS && (
-          <div className="p-32 text-center">
-            <div className="w-32 h-32 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-12 text-green-500 shadow-[0_0_80px_rgba(34,197,94,0.3)] border border-green-500/20">
-              <ShieldCheck className="w-20 h-20" />
+          <div className="p-16 text-center">
+            <div className="w-24 h-24 bg-cyan-500/10 rounded-full flex items-center justify-center mx-auto mb-10 text-cyan-500 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
+              <ShieldCheck className="w-12 h-12" />
             </div>
-            <h3 className="text-6xl font-black italic tracking-tighter mb-8 uppercase leading-none">MISSION LIVE</h3>
-            <p className="text-zinc-500 font-bold mb-16 text-2xl italic leading-relaxed max-w-sm mx-auto">Your asset is now streaming across the Star Runner infrastructure.</p>
-            <button 
-              onClick={onClose}
-              className="px-20 py-6 bg-white text-black font-black text-2xl rounded-3xl hover:bg-zinc-100 transition-all shadow-[0_20px_60px_rgba(255,255,255,0.2)]"
-            >
-              RETURN TO DECK
-            </button>
+            <h3 className="text-2xl font-extrabold text-white uppercase tracking-tight mb-4">Board Placement Active</h3>
+            <p className="text-zinc-500 mb-10 text-sm font-medium">Your project has been successfully added to the Meme-Star Runner Board.</p>
+            <button onClick={onClose} className="px-12 py-4 bg-white text-black font-extrabold text-base rounded-xl transform active:scale-95 transition-all shadow-2xl">Return to Board</button>
           </div>
         )}
       </div>
@@ -342,36 +438,21 @@ const PromotionModal = ({ isOpen, onClose, onFinish }: { isOpen: boolean, onClos
 
 export default function App() {
   const [coins, setCoins] = useState<MemeCoin[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalState, setModalState] = useState<{ open: boolean, placement: AdPlacement }>({ open: false, placement: 'standard' });
 
   useEffect(() => {
+    // Initial data for the Runner Board
     setCoins([
       {
-        id: '1',
-        name: 'Doge Overdrive',
-        ticker: 'DOVER',
-        contractAddress: '0x382...772',
+        id: 'top-1',
+        name: 'Meme-Star Runner',
+        ticker: 'RUNNER',
+        contractAddress: '',
         website: '#',
-        description: 'Breaking the sound barrier of the meme economy. 🏎️ Maximum velocity doge with built-in rewards.',
-        timestamp: Date.now() - 1800000
-      },
-      {
-        id: '2',
-        name: 'Neon Pepe',
-        ticker: 'NPEPE',
-        contractAddress: '0x992...11a',
-        website: '#',
-        description: 'Pepe has ascended to the neon dimension. 🔋 Fully audited, degen verified, moon-bound technology.',
-        timestamp: Date.now() - 5400000
-      },
-      {
-        id: '3',
-        name: 'Cyber Shibe',
-        ticker: 'CSHIBE',
-        contractAddress: '0xfe8...283',
-        website: '#',
-        description: 'The cybernetic evolution of the shiba inu. 🦾 Holding until 2077 and beyond. Join the collective.',
-        timestamp: Date.now() - 8600000
+        description: 'The ultimate synthwave destination for high-octane community project promotions.',
+        timestamp: Date.now() - 3600000,
+        placement: 'elite',
+        imageUrl: LOGO_URL
       }
     ]);
   }, []);
@@ -380,82 +461,18 @@ export default function App() {
     setCoins(prev => [newCoin, ...prev]);
   };
 
+  const edgeCoins = coins.filter(c => c.placement === 'edge');
+
   return (
-    <div className="min-h-screen selection:bg-purple-600 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen selection:bg-pink-500 selection:text-white bg-transparent text-zinc-400 font-sans tracking-tight">
       <Header />
       
-      <main>
-        <Hero onStartPromotion={() => setIsModalOpen(true)} />
+      {/* Sidebars */}
+      <SidebarAd side="left" coin={edgeCoins[0]} onReserve={() => setModalState({ open: true, placement: 'edge' })} />
+      <SidebarAd side="right" coin={edgeCoins[1]} onReserve={() => setModalState({ open: true, placement: 'edge' })} />
+
+      <main className="max-w-4xl mx-auto px-4 relative">
+        <Hero onStartPromotion={(placement) => setModalState({ open: true, placement })} />
         
-        {/* Banner Ticker */}
-        <div className="bg-gradient-to-r from-zinc-900 via-purple-900 to-zinc-900 py-5 overflow-hidden whitespace-nowrap border-y border-white/10 shadow-[0_0_50px_rgba(168,85,247,0.1)]">
-          <div className="flex animate-scroll gap-16 text-white font-black pixel-font text-[10px] uppercase tracking-[0.2em] items-center italic">
-            <span>$1 Promotion Active</span>
-            <div className="w-2 h-2 bg-pink-500 rounded-full shadow-[0_0_10px_#ec4899]"></div>
-            <span>High Volume Terminal</span>
-            <div className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_10px_#22d3ee]"></div>
-            <span>Syndicated Socials</span>
-            <div className="w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_10px_#a855f7]"></div>
-            <span>Newsletter Inclusion</span>
-            <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-            <span>$1 Promotion Active</span>
-            <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-            <span>High Volume Terminal</span>
-            <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-          </div>
-        </div>
-
-        <Features />
-        <PromotionBoard coins={coins} />
-        
-        {/* CTA Bottom */}
-        <section className="py-60 relative overflow-hidden bg-black text-center">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_rgba(168,85,247,0.12)_0%,_transparent_65%)]"></div>
-          <div className="max-w-4xl mx-auto px-4 relative z-10">
-            <h2 className="text-7xl md:text-[9rem] font-black italic tracking-tighter uppercase mb-12 leading-[0.75] text-transparent bg-clip-text bg-gradient-to-b from-white via-zinc-400 to-zinc-800">Runner<br/>Now.</h2>
-            <p className="text-zinc-500 mb-20 text-3xl font-bold max-w-xl mx-auto italic tracking-tight">The industry's most cost-efficient blast. Don't let your moon mission wait.</p>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-white text-black px-20 py-8 rounded-[3rem] font-black text-3xl shadow-[0_40px_120px_rgba(255,255,255,0.15)] transition-all transform hover:scale-110 active:scale-95 italic uppercase tracking-tighter"
-            >
-              LAUNCH FOR $1
-            </button>
-          </div>
-        </section>
-      </main>
-
-      <footer className="py-32 border-t border-white/5 bg-[#020202]">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-24 items-center">
-          <div className="flex flex-col items-center md:items-start gap-8">
-            <div className="flex items-center gap-4">
-              <div className="bg-purple-600 p-2.5 rounded-2xl shadow-xl">
-                <Rocket className="w-6 h-6 text-white" />
-              </div>
-              <span className="pixel-font text-[11px] font-bold text-zinc-500 tracking-[0.3em] uppercase">
-                STAR RUNNER
-              </span>
-            </div>
-            <p className="text-zinc-600 text-lg font-bold italic text-center md:text-left leading-relaxed">Fueling the next generation of meme wealth acceleration.</p>
-          </div>
-          
-          <div className="flex gap-12 justify-center">
-            <a href="#" className="text-zinc-700 hover:text-white transition-all transform hover:scale-150 hover:rotate-12"><Twitter className="w-8 h-8" /></a>
-            <a href="#" className="text-zinc-700 hover:text-white transition-all transform hover:scale-150 hover:rotate-12"><MessageCircle className="w-8 h-8" /></a>
-            <a href="#" className="text-zinc-700 hover:text-white transition-all transform hover:scale-150 hover:rotate-12"><Activity className="w-8 h-8" /></a>
-          </div>
-          
-          <div className="flex flex-col items-center md:items-end gap-3 font-mono">
-            <p className="text-zinc-700 text-xs font-black tracking-[0.4em] uppercase italic">Deployed: Bitcoin Mainnet</p>
-            <p className="text-zinc-800 text-[10px] uppercase font-bold">© 2025 Runner Labs Int.</p>
-          </div>
-        </div>
-      </footer>
-
-      <PromotionModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onFinish={handleFinishPromotion} 
-      />
-    </div>
-  );
-}
+        {/* Banner Ad Space */}
+        <Edge
