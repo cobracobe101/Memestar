@@ -24,7 +24,8 @@ const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
         />
       ) : (
         <div className="flex flex-col items-start leading-none uppercase">
-          <span className={`${fontSize} font-black italic tracking-tighter bg-gradient-to-r from-pink-500 to-rose-400 bg-clip-text text-transparent`}>
+          {/* Added pr-2 to prevent the italic 'r' from being cut off */}
+          <span className={`${fontSize} font-black italic tracking-tighter bg-gradient-to-r from-pink-500 to-rose-400 bg-clip-text text-transparent pr-2`}>
             Meme-Star
           </span>
           <span className={`${subSize} font-bold tracking-[0.4em] text-cyan-400`}>
@@ -51,19 +52,23 @@ const Header = () => (
 
 const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement) => void }) => (
   <section className="relative py-24 flex flex-col items-center text-center px-6">
-    <div className="max-w-4xl relative z-10">
+    <div className="max-w-5xl relative z-10">
       <div className="inline-flex items-center gap-2 bg-zinc-900/50 border border-white/10 px-4 py-2 rounded-full mb-8">
         <Zap className="w-3 h-3 text-pink-500 fill-pink-500" />
         <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">Board Status: <span className="text-pink-400">Hyper-Active</span></span>
       </div>
 
-      <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-6 leading-none">
-        Elite <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600">Visibility</span> <br />
-        <span className="text-pink-500">Meme-Star</span> Board
+      <h1 className="text-4xl md:text-7xl lg:text-9xl font-black uppercase tracking-tighter mb-4 leading-[0.85]">
+        Meme-Star <br />
+        <span className="text-pink-500">Runner</span>
       </h1>
+      
+      <h2 className="text-xl md:text-3xl lg:text-4xl font-bold text-zinc-300 uppercase tracking-tight mb-12 max-w-4xl mx-auto leading-tight">
+        The most <span className="text-white">cost efficient</span> promotion <br className="hidden md:block" /> for your meme coin
+      </h2>
 
-      <p className="text-zinc-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
-        The definitive dashboard for community projects. Blast your token to our high-traffic feed for just <span className="text-white font-bold">$1.00 BTC</span>.
+      <p className="text-zinc-500 text-base md:text-lg mb-12 max-w-2xl mx-auto font-medium">
+        Get your project in front of thousands for just <span className="text-white font-bold">$1.00 BTC</span>. Fast, simple, and effective visibility.
       </p>
       
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
