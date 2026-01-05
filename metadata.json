@@ -1,7 +1,5 @@
 {
   "name": "Meme-Star Runner",
   "description": "Premium project visibility for the community-led meme coin ecosystem. Listing fee is strictly $1.00 BTC.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "requestFramePermissions": []
 }

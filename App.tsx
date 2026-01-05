@@ -1,13 +1,14 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Rocket, Globe, Zap, ArrowRight, ShieldCheck, Upload, Monitor, ExternalLink, Crown, Mail, Twitter, Send, Star } from 'lucide-react';
+import { Rocket, Globe, Zap, ArrowRight, ShieldCheck, Upload, Monitor, ExternalLink, Crown, Mail, Twitter, Send, Star, Clock } from 'lucide-react';
 import { MemeCoin, PromotionStatus, AdPlacement } from './types';
 import { generateMoonCatchphrase } from './services/geminiService';
 
 const LOGO_IMG_URL = "https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png";
+const LISTING_DURATION = 24 * 60 * 60 * 1000; // 24 Hours
 
 const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
   const [imageError, setImageError] = useState(false);
-  
   const height = size === 'sm' ? 'h-8' : size === 'md' ? 'h-12' : 'h-20';
   const fontSize = size === 'sm' ? 'text-xl' : size === 'md' ? 'text-3xl' : 'text-5xl';
   const subSize = size === 'sm' ? 'text-[8px]' : size === 'md' ? 'text-[10px]' : 'text-xs';
@@ -40,7 +41,7 @@ const Header = () => (
     <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
       <Logo size="md" />
       <nav className="hidden md:flex gap-8 items-center">
-        <a href="#promotions" className="text-xs font-bold text-zinc-400 hover:text-white transition-all uppercase tracking-wider">Feed</a>
+        <a href="#promotions" className="text-xs font-bold text-zinc-400 hover:text-white transition-all uppercase tracking-wider">Board</a>
         <a href="#top-promos" className="text-xs font-bold text-zinc-400 hover:text-white transition-all uppercase tracking-wider">Elite</a>
         <a href="mailto:support@memestarrunner.com" className="bg-white text-black px-4 py-2 rounded-lg text-xs font-bold uppercase hover:bg-zinc-200 transition-all">Support</a>
       </nav>
@@ -83,49 +84,26 @@ const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement)
   </section>
 );
 
-const TopPromotions = ({ coins }: { coins: MemeCoin[] }) => {
-  const topCoins = coins.filter(c => c.placement === 'elite');
-  return (
-    <section id="top-promos" className="py-20 border-t border-white/5 bg-zinc-900/10">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-3">
-            <Crown className="w-6 h-6 text-yellow-500" />
-            <h2 className="text-2xl font-black uppercase tracking-tight">Elite Board</h2>
-          </div>
-          <a href="mailto:support@memestarrunner.com" className="text-[10px] font-bold text-zinc-500 hover:text-white transition-all uppercase tracking-widest border border-white/10 px-3 py-1.5 rounded-md">Request Slot</a>
-        </div>
-        
-        <div className="grid gap-6">
-          {topCoins.map(coin => (
-            <div key={coin.id} className="relative group p-8 rounded-2xl border border-white/10 bg-zinc-900/30 backdrop-blur-sm transition-all hover:border-pink-500/30 overflow-hidden">
-              <div className="flex flex-col md:flex-row gap-8 items-center">
-                <div className="w-24 h-24 rounded-2xl bg-black border border-white/5 overflow-hidden shrink-0 flex items-center justify-center">
-                  {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <div className="text-3xl font-black text-zinc-800 uppercase">{coin.ticker[0]}</div>}
-                </div>
-                <div className="flex-grow">
-                  <div className="flex items-center gap-4 mb-2">
-                    <h4 className="font-bold text-2xl uppercase text-white tracking-tight">{coin.name}</h4>
-                    <span className="text-pink-500 font-black font-mono tracking-tighter">${coin.ticker}</span>
-                  </div>
-                  <p className="text-zinc-400 text-sm font-medium leading-relaxed mb-6 italic">"{coin.description}"</p>
-                  <a href={coin.website} target="_blank" className="inline-flex items-center gap-2 bg-zinc-800 text-zinc-200 px-6 py-2.5 rounded-lg text-xs font-bold uppercase hover:bg-zinc-700 transition-all">Visit Project <ExternalLink className="w-4 h-4" /></a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+const getTimeLeft = (timestamp: number) => {
+  const diff = timestamp + LISTING_DURATION - Date.now();
+  if (diff <= 0) return 'Expired';
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m left`;
 };
 
 const ListingsFeed = ({ coins }: { coins: MemeCoin[] }) => (
   <section id="promotions" className="py-20">
     <div className="max-w-4xl mx-auto px-6">
-      <div className="flex items-center gap-3 mb-12">
-        <Star className="w-6 h-6 text-pink-500 fill-pink-500" />
-        <h2 className="text-2xl font-black uppercase tracking-tight">Live Board Feed</h2>
+      <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-3">
+          <Star className="w-6 h-6 text-pink-500 fill-pink-500" />
+          <h2 className="text-2xl font-black uppercase tracking-tight">Live Board Feed</h2>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 bg-zinc-900/50 rounded-lg border border-white/5">
+           <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Active Runners:</span>
+           <span className="text-[10px] font-bold text-white uppercase">{coins.filter(c => c.placement === 'standard').length}</span>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -133,11 +111,19 @@ const ListingsFeed = ({ coins }: { coins: MemeCoin[] }) => (
           <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl text-zinc-600 font-bold uppercase tracking-widest text-sm">Waiting for incoming runners...</div>
         ) : (
           coins.filter(c => c.placement === 'standard').map((coin) => (
-            <div key={coin.id} className="group flex flex-col sm:flex-row gap-6 items-center p-6 bg-zinc-900/20 border border-white/5 rounded-2xl hover:bg-zinc-900/40 transition-all hover:border-white/10">
+            <div key={coin.id} className="group flex flex-col sm:flex-row gap-6 items-center p-6 bg-zinc-900/20 border border-white/5 rounded-2xl hover:bg-zinc-900/40 transition-all hover:border-white/10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3">
+                 <div className="flex items-center gap-1.5 px-2 py-1 bg-black/40 rounded-md border border-white/5">
+                    <Clock className="w-3 h-3 text-zinc-500" />
+                    <span className="text-[9px] font-bold text-zinc-500 uppercase tabular-nums">
+                      {getTimeLeft(coin.timestamp)}
+                    </span>
+                 </div>
+              </div>
               <div className="w-14 h-14 rounded-xl bg-black border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                 {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <span className="font-bold text-zinc-700">{coin.ticker[0]}</span>}
               </div>
-              <div className="flex-grow text-center sm:text-left">
+              <div className="flex-grow text-center sm:text-left pt-2 sm:pt-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                   <h4 className="font-bold text-lg uppercase text-white leading-none">{coin.name}</h4>
                   <span className="text-pink-500 font-bold font-mono text-sm leading-none">${coin.ticker}</span>
@@ -233,29 +219,96 @@ const PromotionModal = ({ isOpen, onClose, onFinish, initialPlacement = 'standar
 };
 
 export default function App() {
-  const [coins, setCoins] = useState<MemeCoin[]>([]);
+  const [coins, setCoins] = useState<MemeCoin[]>(() => {
+    const saved = localStorage.getItem('memestarrunner_listings');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [modalState, setModalState] = useState<{ open: boolean, placement: AdPlacement }>({ open: false, placement: 'standard' });
+  const [tick, setTick] = useState(0);
 
+  // Persistence and Cleanup Sweeper
   useEffect(() => {
-    setCoins([{ 
-      id: 'top-1', 
-      name: 'Meme-Star Runner', 
-      ticker: 'RUNNER', 
-      contractAddress: '', 
-      website: '#', 
-      description: 'The ultimate synthwave destination for high-octane community project promotions.', 
-      timestamp: Date.now() - 3600000, 
-      placement: 'elite', 
-      imageUrl: LOGO_IMG_URL 
-    }]);
+    const sweep = () => {
+      const now = Date.now();
+      setCoins(prev => {
+        const filtered = prev.filter(coin => {
+          // Keep Elite listings forever (or handle separately if needed), but Standard/Edge clear in 24h
+          if (coin.placement === 'elite') return true;
+          return (now - coin.timestamp) < LISTING_DURATION;
+        });
+        
+        // Save to local storage if it changed
+        if (JSON.stringify(filtered) !== localStorage.getItem('memestarrunner_listings')) {
+          localStorage.setItem('memestarrunner_listings', JSON.stringify(filtered));
+        }
+        return filtered;
+      });
+      setTick(t => t + 1); // Force a re-render for countdowns
+    };
+
+    // Initial load check
+    if (coins.length === 0) {
+      setCoins([{ 
+        id: 'top-1', 
+        name: 'Meme-Star Runner', 
+        ticker: 'RUNNER', 
+        contractAddress: '', 
+        website: '#', 
+        description: 'The ultimate synthwave destination for high-octane community project promotions.', 
+        timestamp: Date.now(), 
+        placement: 'elite', 
+        imageUrl: LOGO_IMG_URL 
+      }]);
+    }
+
+    const interval = setInterval(sweep, 60000); // Sweep every minute
+    sweep(); // Run immediately
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Save whenever coins change
+  useEffect(() => {
+    localStorage.setItem('memestarrunner_listings', JSON.stringify(coins));
+  }, [coins]);
 
   return (
     <div className="min-h-screen text-zinc-400 bg-transparent selection:bg-pink-500 selection:text-white pb-20">
       <Header />
       <main className="max-w-4xl mx-auto">
         <Hero onStartPromotion={(p) => setModalState({ open: true, placement: p })} />
-        <TopPromotions coins={coins} />
+        
+        {/* Elite Section */}
+        <section id="top-promos" className="py-20 border-t border-white/5 bg-zinc-900/10">
+          <div className="max-w-4xl mx-auto px-6">
+            <div className="flex items-center justify-between mb-12">
+              <div className="flex items-center gap-3">
+                <Crown className="w-6 h-6 text-yellow-500" />
+                <h2 className="text-2xl font-black uppercase tracking-tight">Elite Board</h2>
+              </div>
+            </div>
+            <div className="grid gap-6">
+              {coins.filter(c => c.placement === 'elite').map(coin => (
+                <div key={coin.id} className="relative group p-8 rounded-2xl border border-white/10 bg-zinc-900/30 backdrop-blur-sm transition-all hover:border-pink-500/30 overflow-hidden">
+                  <div className="flex flex-col md:flex-row gap-8 items-center">
+                    <div className="w-24 h-24 rounded-2xl bg-black border border-white/5 overflow-hidden shrink-0 flex items-center justify-center">
+                      {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <div className="text-3xl font-black text-zinc-800 uppercase">{coin.ticker[0]}</div>}
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex items-center gap-4 mb-2">
+                        <h4 className="font-bold text-2xl uppercase text-white tracking-tight">{coin.name}</h4>
+                        <span className="text-pink-500 font-black font-mono tracking-tighter">${coin.ticker}</span>
+                      </div>
+                      <p className="text-zinc-400 text-sm font-medium leading-relaxed mb-6 italic">"{coin.description}"</p>
+                      <a href={coin.website} target="_blank" className="inline-flex items-center gap-2 bg-zinc-800 text-zinc-200 px-6 py-2.5 rounded-lg text-xs font-bold uppercase hover:bg-zinc-700 transition-all">Visit Project <ExternalLink className="w-4 h-4" /></a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <ListingsFeed coins={coins} />
         
         <section className="mt-20 px-6">
