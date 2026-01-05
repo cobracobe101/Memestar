@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Rocket, Globe, Zap, ShieldCheck, Upload, Monitor, ExternalLink, Crown, Twitter, Send, Star, Clock, Flame, Bitcoin, ArrowRight, Loader2, Copy, CheckCircle2, ShieldEllipsis, AlertCircle, Terminal, Cpu, Database, Network, Image as ImageIcon, Plus, Check } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 import { MemeCoin, PromotionStatus, AdPlacement } from './types';
 import { generateMoonCatchphrase } from './services/geminiService';
 
@@ -619,6 +620,8 @@ export default function App() {
           return [c, ...prev];
         });
       }} initialPlacement={modalState.placement} />
+
+      <Analytics />
     </div>
   );
 }
