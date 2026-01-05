@@ -3,13 +3,14 @@ import { Rocket, Globe, Zap, ShieldCheck, Upload, Monitor, ExternalLink, Crown, 
 import { MemeCoin, PromotionStatus, AdPlacement } from './types';
 import { generateMoonCatchphrase } from './services/geminiService';
 
+// Fallback logo if the user's specific link is transient
 const LOGO_IMG_URL = "https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png";
 const LISTING_DURATION = 24 * 60 * 60 * 1000; // 24 Hours
 
 /** 
  * CONFIGURATION: Update these values for your business
  */
-const BTC_ADDRESS = "bc1q4f3d67vsdq4z4x5rwj8ps3xqddlxztnwwghfzr"; // Updated BTC Wallet Address
+const BTC_ADDRESS = "bc1q4f3d67vsdq4z4x5rwj8ps3xqddlxztnwwghfzr";
 const PROMOTION_PRICE_USD = 1.00;
 const SIDEBAR_PRICE_USD = 15.00;
 
@@ -101,26 +102,40 @@ const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement)
 );
 
 const AdBannerSlot = ({ placement, coins, onPromote }: { placement: AdPlacement, coins: MemeCoin[], onPromote: (p: AdPlacement) => void }) => {
+  // Pre-filled ad for "Squid Doge" as requested
+  const defaultAds: Record<string, Partial<MemeCoin>> = {
+    'edge': {
+      name: 'Squid Doge',
+      ticker: 'SQDGE',
+      website: 'https://squiddoge.com', // Official Squid Doge link as requested
+      imageUrl: 'https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png'
+    }
+  };
+
   const activeBanners = coins.filter(c => c.placement === placement);
+  const coin = activeBanners.length > 0 ? activeBanners[0] : (defaultAds[placement] as MemeCoin);
   
-  if (activeBanners.length > 0) {
-    const coin = activeBanners[0]; 
+  if (coin) { 
     return (
       <div className="max-w-7xl mx-auto px-6">
         <div className="relative group w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl transition-all hover:border-pink-500/40">
           <div className="relative w-full h-16 md:h-20 bg-zinc-900 overflow-hidden">
-            {coin.imageUrl ? (
-              <img src={coin.imageUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={coin.name} />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-zinc-950"><ImageIcon className="w-6 h-6 text-zinc-800" /></div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 md:p-4">
+            <img 
+              src={coin.imageUrl} 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80" 
+              alt={coin.name} 
+              onError={(e) => {
+                // Handle potentially broken photo links gracefully
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1622630998477-00aa196902ec?auto=format&fit=crop&q=80&w=1000';
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent flex flex-col justify-end p-3 md:p-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                   <h4 className="font-black text-lg md:text-xl uppercase text-white tracking-tighter leading-none">{coin.name}</h4>
-                   <span className="text-cyan-400 font-black font-mono text-base leading-none drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">${coin.ticker}</span>
+                   <h4 className="font-black text-xl md:text-2xl uppercase text-white tracking-tighter leading-none drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">{coin.name}</h4>
+                   <span className="text-cyan-400 font-black font-mono text-lg leading-none drop-shadow-[0_0_10px_rgba(34,211,238,0.9)] transition-all group-hover:text-pink-500 group-hover:scale-110">${coin.ticker}</span>
                 </div>
-                <a href={coin.website} target="_blank" className="inline-flex items-center justify-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[8px] font-black uppercase hover:bg-cyan-400 transition-all shadow-2xl shrink-0">Explore <ExternalLink className="w-3 h-3" /></a>
+                <a href={coin.website} target="_blank" className="inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-2 rounded-lg text-[9px] font-black uppercase hover:bg-cyan-400 transition-all shadow-2xl shrink-0">VISIT PROJECT <ExternalLink className="w-3.5 h-3.5" /></a>
               </div>
             </div>
           </div>
@@ -129,19 +144,17 @@ const AdBannerSlot = ({ placement, coins, onPromote }: { placement: AdPlacement,
     );
   }
 
+  // Placeholder with icons removed as requested for a cleaner look
   return (
     <div className="max-w-7xl mx-auto px-6">
       <div 
         onClick={() => onPromote(placement)}
-        className="w-full h-16 md:h-20 rounded-2xl border border-dashed border-white/20 bg-zinc-950/60 flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400/50 hover:bg-zinc-900/80 transition-all group relative overflow-hidden"
+        className="w-full h-16 md:h-20 rounded-2xl border border-dashed border-white/10 bg-zinc-950/40 flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400/50 hover:bg-zinc-900/60 transition-all group relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.08)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-        <div className="flex items-center gap-6">
-           <div className="flex items-center gap-3">
-              <Plus className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] group-hover:text-cyan-400 transition-colors">Put Ad Here</h3>
-           </div>
-           <p className="hidden md:block text-cyan-400 text-[8px] font-black uppercase tracking-[0.4em] opacity-80 group-hover:opacity-100 transition-colors">Premium Banner Ads (${SIDEBAR_PRICE_USD})</p>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div className="flex items-center gap-8">
+           <h3 className="text-xl md:text-2xl font-black text-white/40 uppercase tracking-tighter group-hover:text-white transition-colors">ADVERTISING SPACE AVAILABLE</h3>
+           <p className="hidden md:block text-pink-500 text-[8px] font-black uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 transition-colors">SECURE THIS BANNER SLOT (${SIDEBAR_PRICE_USD})</p>
         </div>
       </div>
     </div>
@@ -179,7 +192,7 @@ const ListingsFeed = ({ coins }: { coins: MemeCoin[] }) => (
                  </div>
               </div>
               <div className="w-20 h-20 rounded-2xl bg-black border border-white/5 flex items-center justify-center overflow-hidden shrink-0 shadow-2xl group-hover:scale-105 transition-transform">
-                {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <span className="text-2xl font-black text-zinc-700">{coin.ticker[0]}</span>}
+                {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1622630998477-00aa196902ec?auto=format&fit=crop&q=80&w=1000'} /> : <span className="text-2xl font-black text-zinc-700">{coin.ticker[0]}</span>}
               </div>
               <div className="flex-grow text-center sm:text-left">
                 <div className="flex flex-col sm:flex-row sm:items-baseline gap-3 mb-2">
@@ -415,7 +428,7 @@ const PromotionModal = ({ isOpen, onClose, onFinish, initialPlacement = 'standar
              <div className="space-y-4">
                 <div className="flex justify-between text-[10px] font-black uppercase mb-1"><span className="text-zinc-500">Mempool Scan Status</span><span className="text-cyan-400">{Math.round(verificationProgress)}%</span></div>
                 <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden border border-white/5">
-                   <div className="bg-cyan-400 h-full transition-all duration-300 shadow-[0_0_15px_rgba(34,211,238,0.5)]" style={{ width: `${verificationProgress}%` }} />
+                   <div className="bg-cyan-400 h-full transition-all duration-300 shadow-[0_0_15px_rgba(236,72,153,0.5)]" style={{ width: `${verificationProgress}%` }} />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                    <div className="p-3 bg-zinc-900/50 rounded-xl border border-white/5 text-center"><Database className="w-3 h-3 text-zinc-700 mx-auto mb-1" /><div className="text-[7px] font-black text-zinc-500 uppercase">Blocks</div></div>
