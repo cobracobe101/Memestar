@@ -1,9 +1,9 @@
-
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export async function generateMoonCatchphrase(coinName: string, ticker: string): Promise<string> {
+  // Create instance right before the call to ensure up-to-date API key usage
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',

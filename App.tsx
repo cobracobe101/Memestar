@@ -1,10 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Rocket, Globe, Zap, ShieldCheck, Upload, Monitor, ExternalLink, Crown, Twitter, Send, Star, Clock, Flame } from 'lucide-react';
+import { Rocket, Globe, Zap, ShieldCheck, Upload, Monitor, ExternalLink, Crown, Twitter, Send, Star, Clock, Flame, Bitcoin, ArrowRight, Loader2, Copy, CheckCircle2, ShieldEllipsis, AlertCircle, Terminal, Cpu, Database, Network, Image as ImageIcon, Plus } from 'lucide-react';
 import { MemeCoin, PromotionStatus, AdPlacement } from './types';
 import { generateMoonCatchphrase } from './services/geminiService';
 
 const LOGO_IMG_URL = "https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png";
 const LISTING_DURATION = 24 * 60 * 60 * 1000; // 24 Hours
+
+/** 
+ * CONFIGURATION: Update these values for your business
+ */
+const BTC_ADDRESS = "bc1q4f3d67vsdq4z4x5rwj8ps3xqddlxztnwwghfzr"; // Updated BTC Wallet Address
+const PROMOTION_PRICE_USD = 1.00;
+const SIDEBAR_PRICE_USD = 15.00;
+
+const getTimeLeft = (timestamp: number) => {
+  const diff = (timestamp + LISTING_DURATION) - Date.now();
+  if (diff <= 0) return '00:00:00';
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
 
 const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
   const [imageError, setImageError] = useState(false);
@@ -23,7 +39,6 @@ const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
         />
       ) : (
         <div className="flex flex-col items-start leading-none uppercase">
-          {/* Increased padding to pr-4 to ensure italic 'r' is never cut off */}
           <span className={`${fontSize} font-black italic tracking-tighter bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 bg-clip-text text-transparent pr-4 transition-all group-hover:tracking-tight`}>
             Meme-Star
           </span>
@@ -42,7 +57,6 @@ const Header = () => (
       <Logo size="md" />
       <nav className="hidden md:flex gap-10 items-center">
         <a href="#promotions" className="text-[10px] font-black text-zinc-500 hover:text-white transition-all uppercase tracking-[0.2em]">Board Feed</a>
-        <a href="#top-promos" className="text-[10px] font-black text-zinc-500 hover:text-white transition-all uppercase tracking-[0.2em]">Elite Access</a>
         <a href="mailto:support@memestarrunner.com" className="bg-white text-black px-5 py-2 rounded-full text-[10px] font-black uppercase hover:bg-cyan-400 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">Support</a>
       </nav>
     </div>
@@ -50,7 +64,7 @@ const Header = () => (
 );
 
 const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement) => void }) => (
-  <section className="relative pt-32 pb-24 flex flex-col items-center text-center px-6 overflow-hidden">
+  <section className="relative pt-24 pb-20 flex flex-col items-center text-center px-6 overflow-hidden">
     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.08)_0%,transparent_70%)] pointer-events-none"></div>
     
     <div className="max-w-5xl relative z-10">
@@ -70,7 +84,7 @@ const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement)
 
       <p className="text-zinc-500 text-lg md:text-xl mb-14 max-w-2xl mx-auto font-medium leading-relaxed">
         High-octane visibility. Zero friction. <br />
-        Blast your project to the top for just <span className="text-white font-black">$1.00 BTC</span>.
+        Blast your project to the top for just <span className="text-white font-black">${PROMOTION_PRICE_USD.toFixed(2)} BTC</span>.
       </p>
       
       <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
@@ -79,25 +93,59 @@ const Hero = ({ onStartPromotion }: { onStartPromotion: (placement: AdPlacement)
           className="group relative bg-white text-black px-12 py-5 rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-cyan-400 transition-all uppercase w-full sm:w-auto justify-center shadow-[0_0_30px_rgba(255,255,255,0.15)] overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-          Promote Token ($1) <Rocket className="w-5 h-5 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
-        </button>
-        <button 
-          onClick={() => onStartPromotion('edge')}
-          className="bg-zinc-950 text-white border border-white/10 px-12 py-5 rounded-2xl font-black text-sm flex items-center gap-3 hover:bg-zinc-900 transition-all uppercase w-full sm:w-auto justify-center border-b-4 border-b-zinc-800 active:border-b-0 active:translate-y-1"
-        >
-          Sidebar Space <Monitor className="w-5 h-5" />
+          Promote Token (${PROMOTION_PRICE_USD.toFixed(0)}) <Rocket className="w-5 h-5 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
         </button>
       </div>
     </div>
   </section>
 );
 
-const getTimeLeft = (timestamp: number) => {
-  const diff = timestamp + LISTING_DURATION - Date.now();
-  if (diff <= 0) return 'Expired';
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours}h ${minutes}m left`;
+const AdBannerSlot = ({ placement, coins, onPromote }: { placement: AdPlacement, coins: MemeCoin[], onPromote: (p: AdPlacement) => void }) => {
+  const activeBanners = coins.filter(c => c.placement === placement);
+  
+  if (activeBanners.length > 0) {
+    const coin = activeBanners[0]; 
+    return (
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="relative group w-full overflow-hidden rounded-2xl border border-white/10 bg-black shadow-2xl transition-all hover:border-pink-500/40">
+          <div className="relative w-full h-16 md:h-20 bg-zinc-900 overflow-hidden">
+            {coin.imageUrl ? (
+              <img src={coin.imageUrl} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={coin.name} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-zinc-950"><ImageIcon className="w-6 h-6 text-zinc-800" /></div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-3 md:p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                   <h4 className="font-black text-lg md:text-xl uppercase text-white tracking-tighter leading-none">{coin.name}</h4>
+                   <span className="text-cyan-400 font-black font-mono text-base leading-none drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">${coin.ticker}</span>
+                </div>
+                <a href={coin.website} target="_blank" className="inline-flex items-center justify-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[8px] font-black uppercase hover:bg-cyan-400 transition-all shadow-2xl shrink-0">Explore <ExternalLink className="w-3 h-3" /></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-6">
+      <div 
+        onClick={() => onPromote(placement)}
+        className="w-full h-16 md:h-20 rounded-2xl border border-dashed border-white/20 bg-zinc-950/60 flex flex-col items-center justify-center cursor-pointer hover:border-cyan-400/50 hover:bg-zinc-900/80 transition-all group relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.08)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div className="flex items-center gap-6">
+           <div className="flex items-center gap-3">
+              <Plus className="w-4 h-4 text-cyan-400" />
+              <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] group-hover:text-cyan-400 transition-colors">Put Ad Here</h3>
+           </div>
+           <p className="hidden md:block text-cyan-400 text-[8px] font-black uppercase tracking-[0.4em] opacity-80 group-hover:opacity-100 transition-colors">Premium Banner Ads (${SIDEBAR_PRICE_USD})</p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const ListingsFeed = ({ coins }: { coins: MemeCoin[] }) => (
@@ -154,12 +202,83 @@ const ListingsFeed = ({ coins }: { coins: MemeCoin[] }) => (
 const PromotionModal = ({ isOpen, onClose, onFinish, initialPlacement = 'standard' }: { isOpen: boolean, onClose: () => void, onFinish: (coin: MemeCoin) => void, initialPlacement?: AdPlacement }) => {
   const [step, setStep] = useState<PromotionStatus>(PromotionStatus.IDLE);
   const [placement, setPlacement] = useState<AdPlacement>(initialPlacement);
-  const [hasInitiatedPayment, setHasInitiatedPayment] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hasCopied, setHasCopied] = useState(false);
+  const [txid, setTxid] = useState('');
+  const [verificationProgress, setVerificationProgress] = useState(0);
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const [formData, setFormData] = useState({ name: '', ticker: '', website: '', description: '', imageUrl: '' });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { if (isOpen) { setPlacement(initialPlacement); setStep(PromotionStatus.IDLE); setHasInitiatedPayment(false); } }, [initialPlacement, isOpen]);
+  const LOG_MESSAGES = [
+    "Establishing connection to Bitcoin Mainnet...",
+    "Querying mempool for TXID: ",
+    "Checking block height 845,412...",
+    "Synchronizing with decentralized nodes...",
+    "Validating transaction weight and fees...",
+    "Matching address hash: " + BTC_ADDRESS,
+    "Verifying output script integrity...",
+    "Confirming sufficient listing fee...",
+    "Finalizing cryptographic validation..."
+  ];
+
+  useEffect(() => { 
+    if (isOpen) { 
+      setPlacement(initialPlacement); 
+      setStep(PromotionStatus.IDLE); 
+      setVerificationProgress(0);
+      setTxid('');
+      setTerminalLogs([]);
+      setIsProcessing(false); 
+      setHasCopied(false);
+    } 
+  }, [initialPlacement, isOpen]);
+
+  useEffect(() => {
+    if (step === PromotionStatus.VERIFYING) {
+      let logIndex = 0;
+      const interval = setInterval(() => {
+        setVerificationProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setTimeout(() => setStep(PromotionStatus.SUBMITTING), 1000);
+            return 100;
+          }
+          if (prev > (logIndex * (100 / LOG_MESSAGES.length))) {
+            setTerminalLogs(cur => [...cur, LOG_MESSAGES[logIndex]]);
+            logIndex++;
+          }
+          return prev + Math.random() * 8;
+        });
+      }, 400);
+      return () => clearInterval(interval);
+    }
+  }, [step]);
+
   if (!isOpen) return null;
+
+  const currentPrice = (placement === 'standard') ? PROMOTION_PRICE_USD : SIDEBAR_PRICE_USD;
+  const btcEstimated = (currentPrice / 95000).toFixed(8);
+
+  const handlePayClick = () => {
+    const btcUri = `bitcoin:${BTC_ADDRESS}?amount=${btcEstimated}&label=MemeStarRunner%20Promotion`;
+    window.location.href = btcUri;
+    setStep(PromotionStatus.PAYING);
+  };
+
+  const copyAddress = () => {
+    navigator.clipboard.writeText(BTC_ADDRESS);
+    setHasCopied(true);
+    setTimeout(() => setHasCopied(false), 2000);
+  };
+
+  const startVerification = () => {
+    if (txid.length < 32) {
+      alert("Please enter a valid Transaction ID (TXID). This must be the 64-character hash provided by your wallet.");
+      return;
+    }
+    setStep(PromotionStatus.VERIFYING);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -172,64 +291,176 @@ const PromotionModal = ({ isOpen, onClose, onFinish, initialPlacement = 'standar
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep(PromotionStatus.SUBMITTING);
-    const generatedDescription = await generateMoonCatchphrase(formData.name, formData.ticker);
-    const newCoin: MemeCoin = { id: Math.random().toString(36).substr(2, 9), name: formData.name, ticker: formData.ticker, contractAddress: '', website: formData.website, imageUrl: formData.imageUrl, description: formData.description || generatedDescription, timestamp: Date.now(), placement: placement };
-    setTimeout(() => { onFinish(newCoin); setStep(PromotionStatus.SUCCESS); }, 1500);
+    setIsProcessing(true);
+    try {
+      const generatedDescription = await generateMoonCatchphrase(formData.name, formData.ticker);
+      const newCoin: MemeCoin = { 
+        id: Math.random().toString(36).substr(2, 9), 
+        name: formData.name, 
+        ticker: formData.ticker, 
+        contractAddress: '', 
+        website: formData.website, 
+        imageUrl: formData.imageUrl, 
+        description: formData.description || generatedDescription, 
+        timestamp: Date.now(), 
+        placement: placement 
+      };
+      
+      setTimeout(() => { 
+        onFinish(newCoin); 
+        setStep(PromotionStatus.SUCCESS);
+        setIsProcessing(false);
+      }, 2000);
+    } catch (err) {
+      console.error(err);
+      setIsProcessing(false);
+    }
   };
+
+  const isBanner = (placement !== 'standard');
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-lg" onClick={onClose}></div>
-      <div className="relative bg-zinc-950 w-full max-w-md border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(236,72,153,0.15)]">
+      <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl" onClick={onClose}></div>
+      <div className="relative bg-[#0a0a0a] w-full max-w-md border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(236,72,153,0.2)] flex flex-col">
+        <div className="flex h-1.5 w-full bg-zinc-900 overflow-hidden">
+           <div className="h-full bg-pink-500 transition-all duration-500 shadow-[0_0_15px_rgba(236,72,153,0.8)]" style={{ width: `${(Object.values(PromotionStatus).indexOf(step) + 1) * (100 / Object.values(PromotionStatus).length)}%` }} />
+        </div>
+
         {step === PromotionStatus.IDLE && (
-          <div className="p-12 text-center">
-            <h2 className="text-3xl font-black uppercase mb-10 tracking-tighter text-white">Secure Listing</h2>
-            <div className="flex bg-black p-2 rounded-2xl mb-10 border border-white/5 gap-2">
-              <button onClick={() => setPlacement('standard')} className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${placement === 'standard' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-600'}`}>Standard ($1)</button>
-              <button onClick={() => setPlacement('edge')} className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${placement === 'edge' ? 'bg-zinc-800 text-white shadow-xl' : 'text-zinc-600'}`}>Sidebar ($15)</button>
+          <div className="p-10 text-center animate-in fade-in zoom-in-95 duration-300">
+            <h2 className="text-3xl font-black uppercase mb-8 tracking-tighter text-white">Choose Placement</h2>
+            <div className="space-y-4 mb-10 text-left">
+              <button onClick={() => setPlacement('standard')} className={`w-full p-6 rounded-3xl border-2 transition-all flex items-center justify-between group ${placement === 'standard' ? 'border-pink-500 bg-pink-500/5' : 'border-white/5 bg-black hover:border-white/20'}`}>
+                <div>
+                  <div className="text-[10px] font-black uppercase text-zinc-500 mb-1">Standard listing</div>
+                  <div className="text-xl font-black text-white uppercase tracking-tighter">Main Feed</div>
+                </div>
+                <div className={`text-xl font-black ${placement === 'standard' ? 'text-pink-500' : 'text-zinc-600'}`}>$1.00</div>
+              </button>
+              <button onClick={() => setPlacement('edge')} className={`w-full p-6 rounded-3xl border-2 transition-all flex items-center justify-between group ${isBanner ? 'border-cyan-400 bg-cyan-400/5' : 'border-white/5 bg-black hover:border-white/20'}`}>
+                <div>
+                  <div className="text-[10px] font-black uppercase text-zinc-500 mb-1">Premium Banner</div>
+                  <div className="text-xl font-black text-white uppercase tracking-tighter">Large Ad Slot</div>
+                </div>
+                <div className={`text-xl font-black ${isBanner ? 'text-cyan-400' : 'text-zinc-600'}`}>$15.00</div>
+              </button>
             </div>
-            <div className="mb-10 p-8 bg-zinc-900/30 rounded-3xl border border-white/5 flex flex-col items-center">
-              <img width="220" src="https://www.blockonomics.co/img/pay_with_bitcoin_medium.png" className="hover:scale-105 hover:opacity-90 cursor-pointer transition-all rounded-xl mb-8 shadow-2xl" alt="Bitcoin" onClick={() => setHasInitiatedPayment(true)} />
-              {hasInitiatedPayment && (
-                <button onClick={() => setStep(PromotionStatus.SUBMITTING)} className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase transition-all hover:bg-cyan-400 shadow-xl">Confirm & Submit</button>
-              )}
-            </div>
-            <button onClick={onClose} className="text-zinc-600 text-[10px] font-black uppercase hover:text-white transition-all tracking-[0.3em]">Abort Request</button>
+            <button onClick={handlePayClick} className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase transition-all hover:bg-cyan-400 shadow-xl flex items-center justify-center gap-3 active:scale-95">Continue to Payment <ArrowRight className="w-4 h-4" /></button>
           </div>
         )}
+
+        {step === PromotionStatus.PAYING && (
+          <div className="p-10 text-center animate-in slide-in-from-right-8 duration-300">
+             <div className="flex items-center justify-center gap-3 mb-8">
+                <Bitcoin className="w-8 h-8 text-orange-500 animate-pulse" />
+                <h2 className="text-3xl font-black uppercase tracking-tighter text-white">BTC Payment</h2>
+             </div>
+             <div className="mb-10 p-8 bg-zinc-900/40 rounded-[2.5rem] border border-white/10 flex flex-col items-center space-y-6">
+                <div className="bg-white p-3 rounded-2xl shadow-2xl scale-110">
+                   <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=bitcoin:${BTC_ADDRESS}?amount=${btcEstimated}`} alt="BTC QR Code" className="w-32 h-32" />
+                </div>
+                <div className="w-full space-y-4">
+                  <div className="text-center">
+                    <div className="text-[10px] font-black text-zinc-600 uppercase mb-1">Required Fee</div>
+                    <div className="text-2xl font-black text-white">${currentPrice.toFixed(2)} USD</div>
+                  </div>
+                  <div className="w-full bg-black border border-white/5 rounded-2xl p-4 flex flex-col gap-2 relative group overflow-hidden">
+                    <div className="flex items-center justify-between"><span className="text-[9px] font-black text-zinc-600 uppercase">Target Wallet</span>{hasCopied && <span className="text-[8px] font-black text-green-500 uppercase animate-bounce">Address Copied</span>}</div>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <span className="text-[10px] font-mono text-zinc-400 truncate text-left">{BTC_ADDRESS}</span>
+                      <button onClick={copyAddress} className="p-2 bg-zinc-800/50 hover:bg-zinc-800 rounded-xl transition-colors text-orange-500 shrink-0"><Copy className="w-4 h-4" /></button>
+                    </div>
+                  </div>
+                </div>
+             </div>
+             <button onClick={() => setStep(PromotionStatus.PROOF_OF_PAYMENT)} className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase transition-all hover:bg-cyan-400 shadow-xl flex items-center justify-center gap-3">Verify My Transaction <ArrowRight className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        {step === PromotionStatus.PROOF_OF_PAYMENT && (
+          <div className="p-10 text-center animate-in fade-in duration-300">
+             <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-8 border border-orange-500/20"><ShieldCheck className="w-8 h-8 text-orange-500" /></div>
+             <h2 className="text-2xl font-black uppercase mb-4 tracking-tighter text-white">Proof of Payment</h2>
+             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em] mb-10 leading-relaxed">Enter your 64-character Bitcoin <br /> transaction hash (TXID) below.</p>
+             <div className="space-y-6 mb-10">
+                <div className="relative">
+                   <Terminal className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                   <input required value={txid} onChange={e => setTxid(e.target.value)} className="w-full bg-black border border-white/10 rounded-2xl p-5 pl-12 focus:border-orange-500/50 outline-none text-zinc-300 font-mono text-[10px] shadow-inner" placeholder="TXID: 64 char hex hash..." />
+                </div>
+                <div className="p-5 bg-zinc-900/50 border border-white/5 rounded-2xl text-left flex gap-4">
+                   <AlertCircle className="w-5 h-5 text-zinc-600 shrink-0 mt-0.5" />
+                   <p className="text-[9px] font-black text-zinc-600 uppercase leading-relaxed">False submissions will lead to a permanent IP ban from the Runner board. Ensure your transaction is visible on blockchain explorers.</p>
+                </div>
+             </div>
+             <button onClick={startVerification} className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase transition-all hover:bg-orange-500 shadow-xl flex items-center justify-center gap-3 active:scale-95">Initialize Node Scan <Rocket className="w-4 h-4" /></button>
+          </div>
+        )}
+
+        {step === PromotionStatus.VERIFYING && (
+          <div className="p-10 flex flex-col h-[600px] bg-black animate-in fade-in duration-500">
+             <div className="flex items-center gap-3 mb-10 border-b border-white/10 pb-6">
+                <Cpu className="w-6 h-6 text-cyan-400 animate-spin-slow" />
+                <div>
+                   <h3 className="text-sm font-black uppercase text-white tracking-tighter">Blockchain Scanner</h3>
+                   <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div><span className="text-[8px] font-black text-zinc-500 uppercase">Live Node Connection</span></div>
+                </div>
+             </div>
+             <div className="flex-grow font-mono text-[10px] space-y-2 overflow-y-auto custom-scrollbar pr-2 mb-8">
+                {terminalLogs.map((log, i) => (
+                  <div key={i} className="flex gap-3 text-cyan-500/80"><span className="text-zinc-800 shrink-0">[{new Date().toLocaleTimeString()}]</span><span className="animate-in fade-in slide-in-from-left-2 duration-300">{log}</span></div>
+                ))}
+                <div className="flex gap-2 text-cyan-400 animate-pulse"><span className="text-zinc-800 shrink-0">[{new Date().toLocaleTimeString()}]</span><span>Processing hash: {txid.substring(0, 12)}...</span></div>
+             </div>
+             <div className="space-y-4">
+                <div className="flex justify-between text-[10px] font-black uppercase mb-1"><span className="text-zinc-500">Mempool Scan Status</span><span className="text-cyan-400">{Math.round(verificationProgress)}%</span></div>
+                <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden border border-white/5">
+                   <div className="bg-cyan-400 h-full transition-all duration-300 shadow-[0_0_15px_rgba(34,211,238,0.5)]" style={{ width: `${verificationProgress}%` }} />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                   <div className="p-3 bg-zinc-900/50 rounded-xl border border-white/5 text-center"><Database className="w-3 h-3 text-zinc-700 mx-auto mb-1" /><div className="text-[7px] font-black text-zinc-500 uppercase">Blocks</div></div>
+                   <div className="p-3 bg-zinc-900/50 rounded-xl border border-white/5 text-center"><Network className="w-3 h-3 text-zinc-700 mx-auto mb-1" /><div className="text-[7px] font-black text-zinc-500 uppercase">Nodes</div></div>
+                   <div className="p-3 bg-zinc-900/50 rounded-xl border border-white/5 text-center"><ShieldCheck className="w-3 h-3 text-zinc-700 mx-auto mb-1" /><div className="text-[7px] font-black text-zinc-500 uppercase">Weight</div></div>
+                </div>
+             </div>
+          </div>
+        )}
+
         {step === PromotionStatus.SUBMITTING && (
-          <form onSubmit={handleSubmit} className="p-12 max-h-[85vh] overflow-y-auto">
-            <h2 className="text-2xl font-black uppercase mb-10 tracking-tighter text-white text-center">Project Identity</h2>
-            <div className="space-y-5 mb-10">
-              <div className="flex justify-center mb-8">
-                <div onClick={() => fileInputRef.current?.click()} className="w-28 h-28 rounded-[2rem] bg-black border-2 border-white/5 flex items-center justify-center cursor-pointer overflow-hidden hover:border-pink-500/50 transition-all shadow-inner">
-                  {formData.imageUrl ? <img src={formData.imageUrl} className="w-full h-full object-cover" /> : <Upload className="text-zinc-800 w-10 h-10" />}
+          <form onSubmit={handleSubmit} className="p-10 max-h-[85vh] overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom-8 duration-500">
+            <div className="flex items-center justify-between mb-8">
+               <div><h2 className="text-2xl font-black uppercase tracking-tighter text-white">Project Specs</h2><p className="text-[9px] font-black text-zinc-500 uppercase mt-1">Verification Hash: {txid.substring(0, 12)}...</p></div>
+               <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-xl shadow-[0_0_15px_rgba(34,197,94,0.1)]"><CheckCircle2 className="w-3 h-3 text-green-500" /><span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Verified</span></div>
+            </div>
+            
+            <div className="space-y-6 mb-10">
+              <div className="flex justify-center mb-6">
+                <div onClick={() => fileInputRef.current?.click()} className={`rounded-[2.5rem] bg-black border-2 border-white/5 flex items-center justify-center cursor-pointer overflow-hidden hover:border-pink-500/50 transition-all shadow-[0_10px_30px_rgba(0,0,0,0.5)] group ${isBanner ? 'w-full h-40' : 'w-28 h-28'}`}>
+                  {formData.imageUrl ? (
+                    <img src={formData.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                       <Upload className="text-zinc-800 w-8 h-8 group-hover:text-pink-500 transition-colors" />
+                       <span className="text-[8px] font-black text-zinc-700 uppercase">{isBanner ? 'Upload Picture Banner' : 'Project Logo'}</span>
+                    </div>
+                  )}
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-zinc-600 uppercase ml-2">Project Name</label>
-                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black border border-white/5 rounded-2xl p-4 focus:border-cyan-400/50 outline-none text-white text-sm font-bold shadow-inner" placeholder="e.g. MoonRunner" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-zinc-600 uppercase ml-2">Token Ticker</label>
-                <input required value={formData.ticker} onChange={e => setFormData({...formData, ticker: e.target.value})} className="w-full bg-black border border-white/5 rounded-2xl p-4 focus:border-pink-500/50 outline-none text-pink-500 font-black uppercase text-sm tracking-widest shadow-inner" placeholder="$TICKER" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-zinc-600 uppercase ml-2">Official Link</label>
-                <input required type="url" value={formData.website} onChange={e => setFormData({...formData, website: e.target.value})} className="w-full bg-black border border-white/5 rounded-2xl p-4 focus:border-white/20 outline-none text-white text-sm shadow-inner" placeholder="https://..." />
-              </div>
+              <div className="space-y-1.5"><label className="text-[10px] font-black text-zinc-600 uppercase ml-4 tracking-[0.1em]">Token Name</label><input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-4 focus:border-cyan-400/50 outline-none text-white text-sm font-bold shadow-inner" placeholder="E.g. Runner Coin" /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-black text-zinc-600 uppercase ml-4 tracking-[0.1em]">Symbol</label><input required value={formData.ticker} onChange={e => setFormData({...formData, ticker: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-4 focus:border-pink-500/50 outline-none text-pink-500 font-black uppercase text-sm tracking-[0.2em] shadow-inner" placeholder="$RUN" /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-black text-zinc-600 uppercase ml-4 tracking-[0.1em]">Official URL</label><input required type="url" value={formData.website} onChange={e => setFormData({...formData, website: e.target.value})} className="w-full bg-black border border-white/10 rounded-2xl p-4 focus:border-white/30 outline-none text-white text-sm shadow-inner" placeholder="https://..." /></div>
             </div>
-            <button type="submit" className="w-full py-5 bg-white text-black font-black text-xs uppercase rounded-2xl transition-all shadow-xl hover:bg-cyan-400">Launch to Feed</button>
+            <button type="submit" disabled={isProcessing} className={`w-full py-5 rounded-2xl font-black text-xs uppercase transition-all shadow-xl flex items-center justify-center gap-3 ${isProcessing ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-white text-black hover:bg-cyan-400'}`}>{isProcessing ? <>Syncing AI Node... <Loader2 className="w-4 h-4 animate-spin" /></> : <>Push to Runner Board <Rocket className="w-4 h-4" /></>}</button>
           </form>
         )}
+
         {step === PromotionStatus.SUCCESS && (
-          <div className="p-20 text-center">
-            <div className="w-20 h-20 bg-pink-500/10 rounded-full flex items-center justify-center mx-auto mb-8 text-pink-500 shadow-[0_0_40px_rgba(236,72,153,0.2)] border border-pink-500/20"><ShieldCheck className="w-10 h-10" /></div>
-            <h3 className="text-2xl font-black uppercase mb-4 text-white">Runner Active</h3>
-            <p className="text-zinc-500 mb-12 text-sm font-medium leading-relaxed italic">Your project is now visible on the Meme-Star Board. Go get 'em!</p>
-            <button onClick={onClose} className="w-full py-4 bg-white text-black font-black text-xs uppercase rounded-2xl hover:bg-cyan-400 transition-all shadow-xl">Back to Board</button>
+          <div className="p-16 text-center animate-in zoom-in-95 duration-500">
+            <div className="w-20 h-20 bg-pink-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-pink-500 shadow-[0_0_60px_rgba(236,72,153,0.3)] border border-pink-500/20 animate-bounce"><CheckCircle2 className="w-10 h-10" /></div>
+            <h3 className="text-3xl font-black uppercase mb-4 text-white tracking-tighter">Runner Deployed</h3>
+            <p className="text-zinc-500 mb-10 text-sm font-medium leading-relaxed italic max-w-[240px] mx-auto">Deployment synchronized. Your project is now visible on the Meme-Star board. Listing expires in 24 hours.</p>
+            <button onClick={onClose} className="w-full py-5 bg-white text-black font-black text-xs uppercase rounded-2xl hover:bg-cyan-400 transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)]">Return to Board</button>
           </div>
         )}
       </div>
@@ -243,7 +474,6 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [modalState, setModalState] = useState<{ open: boolean, placement: AdPlacement }>({ open: false, placement: 'standard' });
-  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const sweep = () => {
@@ -253,28 +483,12 @@ export default function App() {
           if (coin.placement === 'elite') return true;
           return (now - coin.timestamp) < LISTING_DURATION;
         });
-        
         if (JSON.stringify(filtered) !== localStorage.getItem('memestarrunner_listings')) {
           localStorage.setItem('memestarrunner_listings', JSON.stringify(filtered));
         }
         return filtered;
       });
-      setTick(t => t + 1);
     };
-
-    if (coins.length === 0) {
-      setCoins([{ 
-        id: 'top-1', 
-        name: 'Meme-Star Runner', 
-        ticker: 'RUNNER', 
-        contractAddress: '', 
-        website: '#', 
-        description: 'The definitive high-octane dashboard for community-led promotions and project scaling.', 
-        timestamp: Date.now(), 
-        placement: 'elite', 
-        imageUrl: LOGO_IMG_URL 
-      }]);
-    }
 
     const interval = setInterval(sweep, 60000);
     sweep();
@@ -285,42 +499,22 @@ export default function App() {
     localStorage.setItem('memestarrunner_listings', JSON.stringify(coins));
   }, [coins]);
 
+  const handlePromoteBanner = (p: AdPlacement) => setModalState({ open: true, placement: p });
+
   return (
     <div className="min-h-screen text-zinc-400 bg-transparent selection:bg-pink-500 selection:text-white pb-20">
+      <div className="pt-4">
+        <AdBannerSlot placement="top_banner" coins={coins} onPromote={handlePromoteBanner} />
+      </div>
+      
       <Header />
+      
       <main className="max-w-4xl mx-auto">
         <Hero onStartPromotion={(p) => setModalState({ open: true, placement: p })} />
         
-        {/* Elite Section */}
-        <section id="top-promos" className="py-24 border-t border-white/5 bg-zinc-950/20 relative">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.02)_0%,transparent_50%)]"></div>
-          <div className="max-w-4xl mx-auto px-6 relative z-10">
-            <div className="flex items-center justify-center mb-16 gap-4">
-              <Crown className="w-8 h-8 text-yellow-500 drop-shadow-[0_0_15px_rgba(234,179,8,0.4)]" />
-              <h2 className="text-4xl font-black uppercase tracking-tighter text-white">Elite Board</h2>
-            </div>
-            <div className="grid gap-8">
-              {coins.filter(c => c.placement === 'elite').map(coin => (
-                <div key={coin.id} className="relative group p-10 rounded-[2.5rem] border border-white/10 bg-zinc-900/40 backdrop-blur-xl transition-all hover:border-pink-500/40 overflow-hidden shadow-2xl">
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/5 blur-[60px] rounded-full"></div>
-                  <div className="flex flex-col md:flex-row gap-10 items-center">
-                    <div className="w-32 h-32 rounded-3xl bg-black border-2 border-white/5 overflow-hidden shrink-0 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
-                      {coin.imageUrl ? <img src={coin.imageUrl} className="w-full h-full object-cover" /> : <div className="text-4xl font-black text-zinc-800 uppercase">{coin.ticker[0]}</div>}
-                    </div>
-                    <div className="flex-grow text-center md:text-left">
-                      <div className="flex flex-col md:flex-row items-center gap-5 mb-4 justify-center md:justify-start">
-                        <h4 className="font-black text-3xl uppercase text-white tracking-tighter">{coin.name}</h4>
-                        <span className="text-pink-500 font-black font-mono text-xl tracking-tighter bg-pink-500/10 px-4 py-1 rounded-full border border-pink-500/20">${coin.ticker}</span>
-                      </div>
-                      <p className="text-zinc-400 text-lg font-medium leading-relaxed mb-8 italic opacity-80">"{coin.description}"</p>
-                      <a href={coin.website} target="_blank" className="inline-flex items-center gap-3 bg-white text-black px-10 py-3.5 rounded-2xl text-[10px] font-black uppercase hover:bg-cyan-400 transition-all shadow-xl">Explore Project <ExternalLink className="w-4 h-4" /></a>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <div className="py-6 border-t border-white/5">
+          <AdBannerSlot placement="edge" coins={coins} onPromote={handlePromoteBanner} />
+        </div>
 
         <ListingsFeed coins={coins} />
         
@@ -329,17 +523,21 @@ export default function App() {
              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-cyan-500/5"></div>
              <div className="relative z-10">
                 <h2 className="text-4xl md:text-5xl font-black text-white uppercase mb-6 leading-tight tracking-tighter italic">Ready to <span className="text-pink-500">Run</span>?</h2>
-                <p className="text-zinc-500 mb-12 text-lg max-w-sm mx-auto font-medium opacity-70">The community is waiting. Secure your placement for just $1.00 BTC today.</p>
+                <p className="text-zinc-500 mb-12 text-lg max-w-sm mx-auto font-medium opacity-70">The community is waiting. Secure your placement for just ${PROMOTION_PRICE_USD.toFixed(2)} BTC today.</p>
                 <button onClick={() => setModalState({ open: true, placement: 'standard' })} className="group relative bg-white text-black px-16 py-5 rounded-2xl font-black text-sm uppercase hover:bg-cyan-400 transition-all shadow-2xl hover:scale-105 active:scale-95 overflow-hidden">
                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                   PROMOTE NOW ($1)
+                   PROMOTE NOW (${PROMOTION_PRICE_USD.toFixed(0)})
                 </button>
              </div>
           </div>
         </section>
+
+        <div className="mt-24 pb-12">
+          <AdBannerSlot placement="bottom_banner" coins={coins} onPromote={handlePromoteBanner} />
+        </div>
       </main>
 
-      <footer className="py-24 border-t border-white/5 bg-black/60 text-center mt-32 relative overflow-hidden">
+      <footer className="py-24 border-t border-white/5 bg-black/60 text-center relative overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-pink-500 to-transparent opacity-30"></div>
         <div className="max-w-4xl mx-auto px-6 flex flex-col items-center gap-10">
           <Logo size="md" />
@@ -352,12 +550,7 @@ export default function App() {
         </div>
       </footer>
 
-      <PromotionModal 
-        isOpen={modalState.open} 
-        onClose={() => setModalState({ ...modalState, open: false })} 
-        onFinish={(c) => setCoins(prev => [c, ...prev])} 
-        initialPlacement={modalState.placement} 
-      />
+      <PromotionModal isOpen={modalState.open} onClose={() => setModalState({ ...modalState, open: false })} onFinish={(c) => setCoins(prev => [c, ...prev])} initialPlacement={modalState.placement} />
     </div>
   );
 }

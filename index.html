@@ -10,28 +10,49 @@
     <style type="text/tailwindcss">
         @layer base {
             body {
-                @apply bg-[#050505] text-white;
+                @apply bg-[#050505] text-white overflow-x-hidden;
                 font-family: 'Space Grotesk', sans-serif;
             }
         }
         @layer components {
             .neon-background {
-                @apply fixed inset-0 -z-10 overflow-hidden;
-                background: radial-gradient(circle at 50% 50%, #110022 0%, #050505 100%);
+                @apply fixed inset-0 -z-10;
+                /* Note: The background image provided by the user is applied here as a repeating tile */
+                background-image: url('https://storage.googleapis.com/cumulus-v1-prod-assets/output_fdfefc1d-1576-4be0-8334-972166663f73.png');
+                background-repeat: repeat;
+                background-size: 500px;
+                opacity: 0.35; /* Increased opacity so user can see it */
+                filter: brightness(0.6);
+            }
+            .background-overlay {
+                @apply fixed inset-0 -z-20 pointer-events-none;
+                background: linear-gradient(180deg, #050505 0%, #0a0a0c 100%);
             }
             .background-grid {
-                @apply absolute inset-0;
+                @apply absolute inset-0 opacity-10;
                 background-image: 
-                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-                background-size: 40px 40px;
-                mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
+                    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+                background-size: 60px 60px;
             }
             .ambient-glow {
-                @apply absolute w-[80vw] h-[80vw] pointer-events-none;
-                background: radial-gradient(circle, rgba(255, 0, 122, 0.05) 0%, transparent 70%);
-                top: -20%;
-                left: -20%;
+                @apply absolute w-[100vw] h-[100vw] pointer-events-none;
+                background: radial-gradient(circle, rgba(236, 72, 153, 0.05) 0%, transparent 70%);
+                top: -30%;
+                left: -30%;
+            }
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 6px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: #000;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #222;
+                border-radius: 10px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: #333;
             }
         }
     </style>
@@ -50,7 +71,8 @@
 </script>
 </head>
 <body>
-    <div class="neon-background">
+    <div class="neon-background"></div>
+    <div class="background-overlay">
         <div class="background-grid"></div>
         <div class="ambient-glow"></div>
     </div>

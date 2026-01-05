@@ -1,5 +1,4 @@
-
-export type AdPlacement = 'standard' | 'elite' | 'edge';
+export type AdPlacement = 'standard' | 'elite' | 'edge' | 'top_banner' | 'bottom_banner';
 
 export interface MemeCoin {
   id: string;
@@ -18,6 +17,8 @@ export interface MemeCoin {
 export enum PromotionStatus {
   IDLE = 'IDLE',
   PAYING = 'PAYING',
+  PROOF_OF_PAYMENT = 'PROOF_OF_PAYMENT',
+  VERIFYING = 'VERIFYING',
   SUBMITTING = 'SUBMITTING',
   SUCCESS = 'SUCCESS',
   ERROR = 'ERROR'
